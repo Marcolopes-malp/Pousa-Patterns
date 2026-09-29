@@ -8,7 +8,6 @@
 [![Apache Tomcat](https://img.shields.io/badge/Tomcat-9.0-9333EA?style=for-the-badge&logo=apachetomcat&logoColor=white)](https://tomcat.apache.org/)
 [![Maven 3.9](https://img.shields.io/badge/Maven-3.9-A855F7?style=for-the-badge&logo=apachemaven&logoColor=white)](https://maven.apache.org/)
 [![Docker Ready](https://img.shields.io/badge/Docker-Enabled-6366F1?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Railway Ready](https://img.shields.io/badge/Railway-Deploy-EC4899?style=for-the-badge&logo=railway&logoColor=white)](https://railway.app/)
 [![License MIT](https://img.shields.io/badge/License-MIT-8B5CF6?style=for-the-badge)](LICENSE)
 
 <br/>
@@ -115,17 +114,6 @@ docker run -p 8080:8080 --name pousada pousada-reservas
 ```
 
 👉 **Acesse no navegador:** [http://localhost:8080/controller.do](http://localhost:8080/controller.do)
-
----
-
-### Opção C: Deploy na Nuvem (Railway / Render)
-
-O projeto é 100% compatível com a plataforma **Railway**:
-
-1. Acesse o painel da [Railway](https://railway.app/).
-2. Clique em **New Project** > **Deploy from GitHub repo**.
-3. Selecione o repositório `Marcolopes-malp/Pousa-Patterns`.
-4. A Railway detectará o `Dockerfile` e realizará o deploy em instantes, disponibilizando uma URL pública com HTTPS.
 
 ---
 
