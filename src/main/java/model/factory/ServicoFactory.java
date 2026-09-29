@@ -26,8 +26,8 @@ public abstract class ServicoFactory {
     }
 
     public static ServicoFactory obterFabrica(String tipo) {
-        if (tipo == null) {
-            return new CafeManhaFactory();
+        if (tipo == null || tipo.trim().isEmpty()) {
+            throw new IllegalArgumentException("Tipo de serviço não informado.");
         }
         switch (tipo.toLowerCase().trim()) {
             case "transfer":
@@ -39,8 +39,9 @@ public abstract class ServicoFactory {
             case "massagem":
                 return new SpaRelaxanteFactory();
             case "cafe":
-            default:
                 return new CafeManhaFactory();
+            default:
+                throw new IllegalArgumentException("Tipo de serviço desconhecido ou não suportado: " + tipo);
         }
     }
 }

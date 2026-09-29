@@ -76,7 +76,11 @@ public class AcomodacaoDAO {
                 return a;
             }
         }
-        return CATALOGO.get(0);
+        return null;
+    }
+
+    public java.util.Optional<Acomodacao> buscarPorIdOptional(int id) {
+        return java.util.Optional.ofNullable(buscarPorId(id));
     }
 
     public Acomodacao buscarPorNome(String nome) {

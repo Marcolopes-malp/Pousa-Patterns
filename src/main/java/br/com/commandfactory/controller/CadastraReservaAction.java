@@ -117,49 +117,72 @@ public class CadastraReservaAction implements ICommand {
                 numDiarias = 1;
             }
 
-            int qtdHospedes = 1;
+            int qtdHospedes;
+            String qtdHospedesStr = request.getParameter("txtQtdHospedes");
             try {
-                qtdHospedes = Integer.parseInt(request.getParameter("txtQtdHospedes"));
-            } catch (Exception ignored) {}
-            if (qtdHospedes <= 0) qtdHospedes = 1;
+                qtdHospedes = Integer.parseInt(qtdHospedesStr != null ? qtdHospedesStr.trim() : "1");
+            } catch (NumberFormatException e) {
+                request.setAttribute("msg", "Quantidade de hóspedes inválida.");
+                request.setAttribute("tipoMsg", "danger");
+                return "resultado.jsp";
+            }
+            if (qtdHospedes <= 0) {
+                request.setAttribute("msg", "A quantidade de hóspedes deve ser de pelo menos 1 pessoa.");
+                request.setAttribute("tipoMsg", "danger");
+                return "resultado.jsp";
+            }
 
-            // S6: Obtenção segura e recálculo da diária no servidor via AcomodacaoDAO
+            // S6 / B5: Obtenção segura e validação da acomodação sem valores padrão silenciosos
             AcomodacaoDAO acomodacaoDAO = new AcomodacaoDAO();
             Acomodacao acomodacao = null;
 
-            int acomodacaoId = 0;
-            try {
-                String aidStr = request.getParameter("acomodacaoId");
-                if (aidStr != null && !aidStr.trim().isEmpty()) {
+            String aidStr = request.getParameter("acomodacaoId");
+            if (aidStr != null && !aidStr.trim().isEmpty()) {
+                int acomodacaoId;
+                try {
                     acomodacaoId = Integer.parseInt(aidStr.trim());
-                    acomodacao = acomodacaoDAO.buscarPorId(acomodacaoId);
+                } catch (NumberFormatException e) {
+                    request.setAttribute("msg", "Identificador de acomodação inválido: " + aidStr);
+                    request.setAttribute("tipoMsg", "danger");
+                    return "resultado.jsp";
                 }
-            } catch (Exception ignored) {}
+                acomodacao = acomodacaoDAO.buscarPorId(acomodacaoId);
+                if (acomodacao == null) {
+                    request.setAttribute("msg", "Acomodação #" + acomodacaoId + " não encontrada no catálogo.");
+                    request.setAttribute("tipoMsg", "danger");
+                    return "resultado.jsp";
+                }
+            }
 
             String tipoQuarto = request.getParameter("txtTipoQuarto");
-            if (acomodacao == null && tipoQuarto != null) {
+            if (acomodacao == null && tipoQuarto != null && !tipoQuarto.trim().isEmpty()) {
                 acomodacao = acomodacaoDAO.buscarPorNome(tipoQuarto);
             }
 
-            double valorDiaria;
-            if (acomodacao != null) {
-                valorDiaria = acomodacao.getValorDiaria();
-                tipoQuarto = acomodacao.getNome();
-            } else {
-                valorDiaria = 250.0;
-                if (tipoQuarto == null || tipoQuarto.trim().isEmpty()) {
-                    tipoQuarto = "Suíte Standard Jardim Colonial";
-                }
+            if (acomodacao == null) {
+                request.setAttribute("msg", "Nenhuma acomodação válida foi informada ou encontrada para a reserva.");
+                request.setAttribute("tipoMsg", "danger");
+                return "resultado.jsp";
             }
+
+            double valorDiaria = acomodacao.getValorDiaria();
+            tipoQuarto = acomodacao.getNome();
 
             // Permite ajuste manual de diária apenas para equipe da recepção
             if (hospede != null && hospede.isRecepcao() && request.getParameter("txtValorDiaria") != null) {
-                try {
-                    double vdManual = Double.parseDouble(request.getParameter("txtValorDiaria"));
-                    if (vdManual > 0) {
-                        valorDiaria = vdManual;
+                String vdParam = request.getParameter("txtValorDiaria").trim();
+                if (!vdParam.isEmpty()) {
+                    try {
+                        double vdManual = Double.parseDouble(vdParam);
+                        if (vdManual > 0) {
+                            valorDiaria = vdManual;
+                        }
+                    } catch (NumberFormatException e) {
+                        request.setAttribute("msg", "Valor de diária manual inválido: " + vdParam);
+                        request.setAttribute("tipoMsg", "danger");
+                        return "resultado.jsp";
                     }
-                } catch (Exception ignored) {}
+                }
             }
 
             String formaPagamento = request.getParameter("txtFormaPagamento");
