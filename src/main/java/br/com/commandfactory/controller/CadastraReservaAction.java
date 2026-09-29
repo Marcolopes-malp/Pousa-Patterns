@@ -165,6 +165,15 @@ public class CadastraReservaAction implements ICommand {
                 return "resultado.jsp";
             }
 
+            // B6: Controle de disponibilidade e sobreposição de datas
+            ReservaDAO dao = new ReservaDAO();
+            int reservasSobrepostas = dao.contarReservasSobrepostas(acomodacao.getId(), checkIn.trim(), checkOut.trim(), 0);
+            if (reservasSobrepostas >= acomodacao.getVagasRestantes()) {
+                request.setAttribute("msg", "Desculpe, a acomodação '" + acomodacao.getNome() + "' não possui vagas suficientes para o período de " + checkIn + " a " + checkOut + ".");
+                request.setAttribute("tipoMsg", "warning");
+                return "resultado.jsp";
+            }
+
             double valorDiaria = acomodacao.getValorDiaria();
             tipoQuarto = acomodacao.getNome();
 
@@ -225,6 +234,7 @@ public class CadastraReservaAction implements ICommand {
                     .comHospede(hospede)
                     .comPeriodo(checkIn, checkOut)
                     .comQuantidadeHospedes(qtdHospedes)
+                    .comAcomodacao(acomodacao)
                     .comTipoQuarto(tipoQuarto)
                     .comValorDiaria(valorDiaria)
                     .comValorTotal(valorTotalCalculado)
@@ -242,7 +252,6 @@ public class CadastraReservaAction implements ICommand {
 
             Reserva reserva = builder.constroi();
 
-            ReservaDAO dao = new ReservaDAO();
             int idGerado = dao.cadastrar(reserva);
             reserva.setId(idGerado);
 

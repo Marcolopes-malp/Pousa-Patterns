@@ -1,6 +1,8 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page import="java.util.List"%>
 <%@page import="model.Reserva"%>
 <%@page import="model.Hospede"%>
+<%@page import="model.Acomodacao"%>
 <%@page import="util.Html"%>
 <%
     Reserva r = (Reserva) request.getAttribute("reserva");
@@ -10,6 +12,10 @@
     }
     Hospede h = r.getHospede();
     if (h == null) h = new Hospede();
+    List<Acomodacao> acomodacoes = (List<Acomodacao>) request.getAttribute("acomodacoes");
+    if (acomodacoes == null) {
+        acomodacoes = new dao.AcomodacaoDAO().listarTodas();
+    }
 %>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -94,8 +100,18 @@
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="txtTipoQuarto">Acomodação</label>
-                        <input type="text" id="txtTipoQuarto" name="txtTipoQuarto" class="input-text" value="<%= Html.esc(r.getTipoQuarto()) %>" required>
+                        <label for="acomodacaoId">Acomodação</label>
+                        <select id="acomodacaoId" name="acomodacaoId" class="select-text" onchange="atualizarDadosAcomodacao(this)" required>
+                            <% for (Acomodacao a : acomodacoes) {
+                                boolean selecionada = (r.getAcomodacaoId() > 0 && r.getAcomodacaoId() == a.getId())
+                                        || (r.getAcomodacaoId() <= 0 && a.getNome().equalsIgnoreCase(r.getTipoQuarto()));
+                            %>
+                                <option value="<%= a.getId() %>" data-nome="<%= Html.esc(a.getNome()) %>" data-diaria="<%= a.getValorDiaria() %>" data-capacidade="<%= a.getCapacidadePessoas() %>" <%= selecionada ? "selected" : "" %>>
+                                    <%= Html.esc(a.getNome()) %> (Capacidade: <%= a.getCapacidadePessoas() %> • R$ <%= String.format(java.util.Locale.US, "%.2f", a.getValorDiaria()) %>/dia)
+                                </option>
+                            <% } %>
+                        </select>
+                        <input type="hidden" id="txtTipoQuarto" name="txtTipoQuarto" value="<%= Html.esc(r.getTipoQuarto()) %>">
                     </div>
                     <div class="form-group">
                         <label for="txtValorDiaria">Valor da diária (R$)</label>
@@ -149,5 +165,25 @@
         </div>
     </main>
 
+    <script>
+        function atualizarDadosAcomodacao(selectElem) {
+            const opt = selectElem.options[selectElem.selectedIndex];
+            if (opt) {
+                const nome = opt.getAttribute('data-nome');
+                const diaria = opt.getAttribute('data-diaria');
+                const cap = opt.getAttribute('data-capacidade');
+                if (nome) {
+                    const txtTipo = document.getElementById('txtTipoQuarto');
+                    if (txtTipo) txtTipo.value = nome;
+                }
+                if (diaria && document.getElementById('txtValorDiaria')) {
+                    document.getElementById('txtValorDiaria').value = diaria;
+                }
+                if (cap && document.getElementById('txtQtdHospedes')) {
+                    document.getElementById('txtQtdHospedes').max = cap;
+                }
+            }
+        }
+    </script>
 </body>
 </html>

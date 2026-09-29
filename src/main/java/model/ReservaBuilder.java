@@ -29,6 +29,8 @@ public class ReservaBuilder {
     private String observacoes = "";
     private String dataCriacao;
     private Hospede hospede;
+    private int acomodacaoId;
+    private Acomodacao acomodacao;
     private List<ItemServico> servicos = new ArrayList<>();
 
     public ReservaBuilder() {
@@ -130,6 +132,22 @@ public class ReservaBuilder {
         return this;
     }
 
+    public ReservaBuilder comAcomodacaoId(int acomodacaoId) {
+        this.acomodacaoId = acomodacaoId;
+        return this;
+    }
+
+    public ReservaBuilder comAcomodacao(Acomodacao acomodacao) {
+        this.acomodacao = acomodacao;
+        if (acomodacao != null) {
+            this.acomodacaoId = acomodacao.getId();
+            this.tipoQuarto = acomodacao.getNome();
+            this.valorDiaria = acomodacao.getValorDiaria();
+            this.capacidadeMaxima = acomodacao.getCapacidadePessoas();
+        }
+        return this;
+    }
+
     /**
      * Valida os atributos e constrói a instância de Reserva consolidada.
      */
@@ -192,7 +210,7 @@ public class ReservaBuilder {
             this.dataCriacao = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         }
 
-        return new Reserva(
+        Reserva r = new Reserva(
                 this.id,
                 this.codigoLocalizador,
                 this.dataCheckIn,
@@ -208,5 +226,8 @@ public class ReservaBuilder {
                 this.hospede,
                 this.servicos
         );
+        r.setAcomodacaoId(this.acomodacaoId);
+        r.setAcomodacao(this.acomodacao);
+        return r;
     }
 }

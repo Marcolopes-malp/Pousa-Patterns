@@ -20,6 +20,7 @@ public class ReservaDAO {
 
     private final HospedeDAO hospedeDAO = new HospedeDAO();
     private final ItemServicoDAO servicoDAO = new ItemServicoDAO();
+    private final AcomodacaoDAO acomodacaoDAO = new AcomodacaoDAO();
 
     public int cadastrar(Reserva reserva) throws ClassNotFoundException, SQLException {
         // Se a reserva possuir um novo hóspede sem ID cadastrado, salva o hóspede primeiro
@@ -30,8 +31,8 @@ public class ReservaDAO {
 
         String sql = "INSERT INTO reservas (codigo_localizador, data_checkin, data_checkout, " +
                 "quantidade_hospedes, tipo_quarto, valor_diaria, valor_total, status, " +
-                "forma_pagamento, observacoes, data_criacao, hospede_id) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "forma_pagamento, observacoes, data_criacao, hospede_id, acomodacao_id) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection con = FabricaConexao.getConexao();
              PreparedStatement comando = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -52,6 +53,23 @@ public class ReservaDAO {
                 comando.setInt(12, reserva.getHospede().getId());
             } else {
                 comando.setNull(12, java.sql.Types.INTEGER);
+            }
+
+            int acomId = reserva.getAcomodacaoId();
+            if (acomId <= 0 && reserva.getAcomodacao() != null) {
+                acomId = reserva.getAcomodacao().getId();
+            }
+            if (acomId <= 0 && reserva.getTipoQuarto() != null) {
+                model.Acomodacao a = acomodacaoDAO.buscarPorNome(reserva.getTipoQuarto());
+                if (a != null) {
+                    acomId = a.getId();
+                }
+            }
+
+            if (acomId > 0) {
+                comando.setInt(13, acomId);
+            } else {
+                comando.setNull(13, java.sql.Types.INTEGER);
             }
 
             comando.executeUpdate();
@@ -82,7 +100,7 @@ public class ReservaDAO {
 
         String sql = "UPDATE reservas SET codigo_localizador = ?, data_checkin = ?, data_checkout = ?, " +
                 "quantidade_hospedes = ?, tipo_quarto = ?, valor_diaria = ?, valor_total = ?, " +
-                "status = ?, forma_pagamento = ?, observacoes = ?, hospede_id = ? " +
+                "status = ?, forma_pagamento = ?, observacoes = ?, hospede_id = ?, acomodacao_id = ? " +
                 "WHERE id = ?";
 
         try (Connection con = FabricaConexao.getConexao();
@@ -104,7 +122,25 @@ public class ReservaDAO {
             } else {
                 comando.setNull(11, java.sql.Types.INTEGER);
             }
-            comando.setInt(12, reserva.getId());
+
+            int acomId = reserva.getAcomodacaoId();
+            if (acomId <= 0 && reserva.getAcomodacao() != null) {
+                acomId = reserva.getAcomodacao().getId();
+            }
+            if (acomId <= 0 && reserva.getTipoQuarto() != null) {
+                model.Acomodacao a = acomodacaoDAO.buscarPorNome(reserva.getTipoQuarto());
+                if (a != null) {
+                    acomId = a.getId();
+                }
+            }
+
+            if (acomId > 0) {
+                comando.setInt(12, acomId);
+            } else {
+                comando.setNull(12, java.sql.Types.INTEGER);
+            }
+
+            comando.setInt(13, reserva.getId());
 
             comando.executeUpdate();
         }
@@ -164,6 +200,30 @@ public class ReservaDAO {
         return lista;
     }
 
+    public int contarReservasSobrepostas(int acomodacaoId, String checkIn, String checkOut, int reservaIdIgnorar) throws ClassNotFoundException, SQLException {
+        String sql = "SELECT COUNT(*) FROM reservas WHERE acomodacao_id = ? " +
+                "AND status <> 'CANCELADA' " +
+                "AND data_checkin < ? " +
+                "AND data_checkout > ? " +
+                (reservaIdIgnorar > 0 ? "AND id <> ?" : "");
+
+        try (Connection con = FabricaConexao.getConexao();
+             PreparedStatement comando = con.prepareStatement(sql)) {
+            comando.setInt(1, acomodacaoId);
+            comando.setString(2, checkOut);
+            comando.setString(3, checkIn);
+            if (reservaIdIgnorar > 0) {
+                comando.setInt(4, reservaIdIgnorar);
+            }
+            try (ResultSet rs = comando.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        }
+        return 0;
+    }
+
     private Reserva mapearReservaCompleta(ResultSet rs) throws SQLException, ClassNotFoundException {
         Reserva r = new Reserva();
         r.setId(rs.getInt("id"));
@@ -183,6 +243,21 @@ public class ReservaDAO {
         if (hospedeId > 0) {
             Hospede h = hospedeDAO.consultarById(hospedeId);
             r.setHospede(h);
+        }
+
+        int acomodacaoId = 0;
+        try {
+            acomodacaoId = rs.getInt("acomodacao_id");
+        } catch (SQLException ignored) {}
+        r.setAcomodacaoId(acomodacaoId);
+        if (acomodacaoId > 0) {
+            r.setAcomodacao(acomodacaoDAO.buscarPorId(acomodacaoId));
+        } else if (r.getTipoQuarto() != null) {
+            model.Acomodacao a = acomodacaoDAO.buscarPorNome(r.getTipoQuarto());
+            if (a != null) {
+                r.setAcomodacao(a);
+                r.setAcomodacaoId(a.getId());
+            }
         }
 
         // Carrega os itens 1:N

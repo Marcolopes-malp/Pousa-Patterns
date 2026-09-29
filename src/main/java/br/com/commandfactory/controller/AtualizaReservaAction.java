@@ -1,9 +1,11 @@
 package br.com.commandfactory.controller;
 
+import dao.AcomodacaoDAO;
 import dao.ReservaDAO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import model.Acomodacao;
 import model.Hospede;
 import model.Reserva;
 import model.ReservaBuilder;
@@ -70,6 +72,28 @@ public class AtualizaReservaAction implements ICommand {
 
             int qtdHospedes = Integer.parseInt(request.getParameter("txtQtdHospedes"));
             String tipoQuarto = request.getParameter("txtTipoQuarto");
+
+            int acomodacaoId = 0;
+            String aidStr = request.getParameter("acomodacaoId");
+            if (aidStr != null && !aidStr.trim().isEmpty()) {
+                try {
+                    acomodacaoId = Integer.parseInt(aidStr.trim());
+                } catch (NumberFormatException ignored) {}
+            }
+
+            Acomodacao acomodacao = null;
+            AcomodacaoDAO acomodacaoDAO = new AcomodacaoDAO();
+            if (acomodacaoId > 0) {
+                acomodacao = acomodacaoDAO.buscarPorId(acomodacaoId);
+            }
+            if (acomodacao == null && tipoQuarto != null && !tipoQuarto.trim().isEmpty()) {
+                acomodacao = acomodacaoDAO.buscarPorNome(tipoQuarto);
+            }
+            if (acomodacao != null) {
+                tipoQuarto = acomodacao.getNome();
+                acomodacaoId = acomodacao.getId();
+            }
+
             double valorDiaria = Double.parseDouble(request.getParameter("txtValorDiaria"));
             double valorTotal = Double.parseDouble(request.getParameter("txtValorTotal"));
             if (valorTotal <= 0) {
@@ -82,7 +106,18 @@ public class AtualizaReservaAction implements ICommand {
             String formaPagamento = request.getParameter("txtFormaPagamento");
             String observacoes = request.getParameter("txtObservacoes");
 
-            Reserva reserva = ReservaBuilder.novo()
+            // B6: Se a reserva não estiver cancelada, valida a disponibilidade de vagas (ignorando a própria reserva sendo editada)
+            ReservaDAO dao = new ReservaDAO();
+            if (acomodacao != null && !"CANCELADA".equalsIgnoreCase(status)) {
+                int sobrepostas = dao.contarReservasSobrepostas(acomodacao.getId(), checkIn, checkOut, id);
+                if (sobrepostas >= acomodacao.getVagasRestantes()) {
+                    request.setAttribute("msg", "Desculpe, a acomodação '" + acomodacao.getNome() + "' não possui vagas suficientes para o período de " + checkIn + " a " + checkOut + ".");
+                    request.setAttribute("tipoMsg", "warning");
+                    return "resultado.jsp";
+                }
+            }
+
+            ReservaBuilder builder = ReservaBuilder.novo()
                     .comId(id)
                     .comCodigoLocalizador(codigo)
                     .comHospede(hospede)
@@ -93,10 +128,15 @@ public class AtualizaReservaAction implements ICommand {
                     .comValorTotal(valorTotal)
                     .comStatus(status)
                     .comFormaPagamento(formaPagamento)
-                    .comObservacoes(observacoes)
-                    .constroi();
+                    .comObservacoes(observacoes);
 
-            ReservaDAO dao = new ReservaDAO();
+            if (acomodacao != null) {
+                builder.comAcomodacao(acomodacao);
+            } else if (acomodacaoId > 0) {
+                builder.comAcomodacaoId(acomodacaoId);
+            }
+
+            Reserva reserva = builder.constroi();
             dao.atualizar(reserva);
 
             request.setAttribute("msg", "Reserva " + reserva.getCodigoLocalizador() + " atualizada com sucesso!");

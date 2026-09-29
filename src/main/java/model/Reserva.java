@@ -28,6 +28,8 @@ public class Reserva implements Serializable {
     // Atributos de Auditoria e Relacionamentos:
     private String dataCriacao;              // Data e hora de geração do registro
     private Hospede hospede;                 // Relacionamento 1:1 (Hóspede Titular)
+    private int acomodacaoId;                // Vínculo com a Acomodação (FK)
+    private Acomodacao acomodacao;           // Objeto Acomodação associado
     private List<ItemServico> servicos;      // Relacionamento 1:N (Serviços Adicionais Contratados)
 
     public Reserva() {
@@ -182,5 +184,24 @@ public class Reserva implements Serializable {
             total += s.getSubtotal();
         }
         return total;
+    }
+
+    public int getAcomodacaoId() {
+        return acomodacaoId;
+    }
+
+    public void setAcomodacaoId(int acomodacaoId) {
+        this.acomodacaoId = acomodacaoId;
+    }
+
+    public Acomodacao getAcomodacao() {
+        return acomodacao;
+    }
+
+    public void setAcomodacao(Acomodacao acomodacao) {
+        this.acomodacao = acomodacao;
+        if (acomodacao != null) {
+            this.acomodacaoId = acomodacao.getId();
+        }
     }
 }

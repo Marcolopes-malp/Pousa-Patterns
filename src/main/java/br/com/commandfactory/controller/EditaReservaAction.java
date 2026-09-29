@@ -36,6 +36,7 @@ public class EditaReservaAction implements ICommand {
 
             if (reserva != null) {
                 request.setAttribute("reserva", reserva);
+                request.setAttribute("acomodacoes", new dao.AcomodacaoDAO().listarTodas());
                 return "formEditar.jsp";
             } else {
                 request.setAttribute("msg", "Reserva não encontrada para edição.");
