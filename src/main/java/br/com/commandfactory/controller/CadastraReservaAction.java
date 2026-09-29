@@ -1,10 +1,16 @@
 package br.com.commandfactory.controller;
 
+import dao.AcomodacaoDAO;
 import dao.HospedeDAO;
 import dao.ReservaDAO;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import model.Acomodacao;
 import model.Hospede;
 import model.ItemServico;
 import model.Reserva;
@@ -82,19 +88,113 @@ public class CadastraReservaAction implements ICommand {
 
             String checkIn = request.getParameter("txtCheckIn");
             String checkOut = request.getParameter("txtCheckOut");
+
+            if (checkIn == null || checkIn.trim().isEmpty() || checkOut == null || checkOut.trim().isEmpty()) {
+                request.setAttribute("msg", "As datas de check-in e check-out são obrigatórias.");
+                request.setAttribute("tipoMsg", "danger");
+                return "resultado.jsp";
+            }
+
+            LocalDate dtIn;
+            LocalDate dtOut;
+            try {
+                dtIn = LocalDate.parse(checkIn.trim());
+                dtOut = LocalDate.parse(checkOut.trim());
+            } catch (Exception e) {
+                request.setAttribute("msg", "Formato de data inválido. Utilize o formato AAAA-MM-DD.");
+                request.setAttribute("tipoMsg", "danger");
+                return "resultado.jsp";
+            }
+
+            if (!dtOut.isAfter(dtIn)) {
+                request.setAttribute("msg", "A data de check-out deve ser estritamente posterior à data de check-in.");
+                request.setAttribute("tipoMsg", "danger");
+                return "resultado.jsp";
+            }
+
+            long numDiarias = ChronoUnit.DAYS.between(dtIn, dtOut);
+            if (numDiarias <= 0) {
+                numDiarias = 1;
+            }
+
             int qtdHospedes = 1;
             try {
                 qtdHospedes = Integer.parseInt(request.getParameter("txtQtdHospedes"));
             } catch (Exception ignored) {}
+            if (qtdHospedes <= 0) qtdHospedes = 1;
 
-            String tipoQuarto = request.getParameter("txtTipoQuarto");
-            double valorDiaria = 250.0;
+            // S6: Obtenção segura e recálculo da diária no servidor via AcomodacaoDAO
+            AcomodacaoDAO acomodacaoDAO = new AcomodacaoDAO();
+            Acomodacao acomodacao = null;
+
+            int acomodacaoId = 0;
             try {
-                valorDiaria = Double.parseDouble(request.getParameter("txtValorDiaria"));
+                String aidStr = request.getParameter("acomodacaoId");
+                if (aidStr != null && !aidStr.trim().isEmpty()) {
+                    acomodacaoId = Integer.parseInt(aidStr.trim());
+                    acomodacao = acomodacaoDAO.buscarPorId(acomodacaoId);
+                }
             } catch (Exception ignored) {}
 
+            String tipoQuarto = request.getParameter("txtTipoQuarto");
+            if (acomodacao == null && tipoQuarto != null) {
+                acomodacao = acomodacaoDAO.buscarPorNome(tipoQuarto);
+            }
+
+            double valorDiaria;
+            if (acomodacao != null) {
+                valorDiaria = acomodacao.getValorDiaria();
+                tipoQuarto = acomodacao.getNome();
+            } else {
+                valorDiaria = 250.0;
+                if (tipoQuarto == null || tipoQuarto.trim().isEmpty()) {
+                    tipoQuarto = "Suíte Standard Jardim Colonial";
+                }
+            }
+
+            // Permite ajuste manual de diária apenas para equipe da recepção
+            if (hospede != null && hospede.isRecepcao() && request.getParameter("txtValorDiaria") != null) {
+                try {
+                    double vdManual = Double.parseDouble(request.getParameter("txtValorDiaria"));
+                    if (vdManual > 0) {
+                        valorDiaria = vdManual;
+                    }
+                } catch (Exception ignored) {}
+            }
+
             String formaPagamento = request.getParameter("txtFormaPagamento");
+            if (formaPagamento == null || formaPagamento.trim().isEmpty()) {
+                formaPagamento = "PIX";
+            }
             String observacoes = request.getParameter("txtObservacoes");
+
+            // Coleta de serviços adicionais
+            List<ItemServico> servicos = new ArrayList<>();
+            double totalServicos = 0.0;
+
+            if (request.getParameter("chkCafe") != null) {
+                ItemServico cafe = ServicoFactory.obterFabrica("cafe").criarServico();
+                servicos.add(cafe);
+                totalServicos += cafe.getSubtotal();
+            }
+            if (request.getParameter("chkTransfer") != null) {
+                ItemServico transfer = ServicoFactory.obterFabrica("transfer").criarServico();
+                servicos.add(transfer);
+                totalServicos += transfer.getSubtotal();
+            }
+            if (request.getParameter("chkPasseio") != null) {
+                ItemServico passeio = ServicoFactory.obterFabrica("passeio").criarServico();
+                servicos.add(passeio);
+                totalServicos += passeio.getSubtotal();
+            }
+            if (request.getParameter("chkSpa") != null) {
+                ItemServico spa = ServicoFactory.obterFabrica("spa").criarServico();
+                servicos.add(spa);
+                totalServicos += spa.getSubtotal();
+            }
+
+            // Recalcula o valor total exclusivamente no servidor (diárias oficiais + serviços)
+            double valorTotalCalculado = (numDiarias * valorDiaria) + totalServicos;
 
             ReservaBuilder builder = ReservaBuilder.novo()
                     .comHospede(hospede)
@@ -102,25 +202,13 @@ public class CadastraReservaAction implements ICommand {
                     .comQuantidadeHospedes(qtdHospedes)
                     .comTipoQuarto(tipoQuarto)
                     .comValorDiaria(valorDiaria)
+                    .comValorTotal(valorTotalCalculado)
                     .comFormaPagamento(formaPagamento)
                     .comObservacoes(observacoes)
                     .comStatus("CONFIRMADA");
 
-            if (request.getParameter("chkCafe") != null) {
-                ItemServico cafe = ServicoFactory.obterFabrica("cafe").criarServico();
-                builder.adicionarServico(cafe);
-            }
-            if (request.getParameter("chkTransfer") != null) {
-                ItemServico transfer = ServicoFactory.obterFabrica("transfer").criarServico();
-                builder.adicionarServico(transfer);
-            }
-            if (request.getParameter("chkPasseio") != null) {
-                ItemServico passeio = ServicoFactory.obterFabrica("passeio").criarServico();
-                builder.adicionarServico(passeio);
-            }
-            if (request.getParameter("chkSpa") != null) {
-                ItemServico spa = ServicoFactory.obterFabrica("spa").criarServico();
-                builder.adicionarServico(spa);
+            for (ItemServico s : servicos) {
+                builder.adicionarServico(s);
             }
 
             Reserva reserva = builder.constroi();

@@ -78,4 +78,20 @@ public class AcomodacaoDAO {
         }
         return CATALOGO.get(0);
     }
+
+    public Acomodacao buscarPorNome(String nome) {
+        if (nome != null && !nome.trim().isEmpty()) {
+            String busca = nome.trim().toLowerCase();
+            for (Acomodacao a : CATALOGO) {
+                if (a.getNome().equalsIgnoreCase(nome.trim())
+                        || a.getNome().toLowerCase().contains(busca)
+                        || busca.contains(a.getNome().toLowerCase())
+                        || a.getTipo().equalsIgnoreCase(nome.trim())
+                        || busca.contains(a.getTipo().toLowerCase())) {
+                    return a;
+                }
+            }
+        }
+        return null;
+    }
 }

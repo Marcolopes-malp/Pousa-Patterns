@@ -53,10 +53,31 @@ public class AtualizaReservaAction implements ICommand {
 
             String checkIn = request.getParameter("txtCheckIn");
             String checkOut = request.getParameter("txtCheckOut");
+
+            try {
+                java.time.LocalDate dtIn = java.time.LocalDate.parse(checkIn);
+                java.time.LocalDate dtOut = java.time.LocalDate.parse(checkOut);
+                if (!dtOut.isAfter(dtIn)) {
+                    request.setAttribute("msg", "A data de check-out deve ser estritamente posterior à data de check-in.");
+                    request.setAttribute("tipoMsg", "danger");
+                    return "resultado.jsp";
+                }
+            } catch (Exception e) {
+                request.setAttribute("msg", "Formato de data inválido.");
+                request.setAttribute("tipoMsg", "danger");
+                return "resultado.jsp";
+            }
+
             int qtdHospedes = Integer.parseInt(request.getParameter("txtQtdHospedes"));
             String tipoQuarto = request.getParameter("txtTipoQuarto");
             double valorDiaria = Double.parseDouble(request.getParameter("txtValorDiaria"));
             double valorTotal = Double.parseDouble(request.getParameter("txtValorTotal"));
+            if (valorTotal <= 0) {
+                java.time.LocalDate dtIn = java.time.LocalDate.parse(checkIn);
+                java.time.LocalDate dtOut = java.time.LocalDate.parse(checkOut);
+                long dias = java.time.temporal.ChronoUnit.DAYS.between(dtIn, dtOut);
+                valorTotal = (dias > 0 ? dias : 1) * valorDiaria;
+            }
             String status = request.getParameter("txtStatus");
             String formaPagamento = request.getParameter("txtFormaPagamento");
             String observacoes = request.getParameter("txtObservacoes");
