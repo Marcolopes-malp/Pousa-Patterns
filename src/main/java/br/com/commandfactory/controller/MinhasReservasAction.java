@@ -16,7 +16,7 @@ public class MinhasReservasAction implements ICommand {
         Hospede usuario = (Hospede) session.getAttribute("usuarioLogado");
 
         if (usuario == null) {
-            response.sendRedirect("login.jsp?redirect=" + java.net.URLEncoder.encode("controller.do?btnop=MinhasReservas", "UTF-8"));
+            response.sendRedirect("controller.do?btnop=Login&redirect=" + java.net.URLEncoder.encode("controller.do?btnop=MinhasReservas", "UTF-8"));
             return null;
         }
 

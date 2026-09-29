@@ -34,8 +34,8 @@ public class CadastraClienteAction implements ICommand {
             HttpSession session = request.getSession();
             session.setAttribute("usuarioLogado", novo);
 
-            if (redirect != null && !redirect.trim().isEmpty()) {
-                response.sendRedirect(redirect);
+            if (util.Seguranca.isRedirectSeguro(redirect)) {
+                response.sendRedirect(redirect.trim());
                 return null;
             }
             response.sendRedirect("controller.do?btnop=MinhasReservas");

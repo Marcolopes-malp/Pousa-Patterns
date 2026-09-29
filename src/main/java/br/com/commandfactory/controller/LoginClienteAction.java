@@ -21,8 +21,8 @@ public class LoginClienteAction implements ICommand {
             HttpSession session = request.getSession();
             session.setAttribute("usuarioLogado", hospede);
 
-            if (redirect != null && !redirect.trim().isEmpty()) {
-                response.sendRedirect(redirect);
+            if (util.Seguranca.isRedirectSeguro(redirect)) {
+                response.sendRedirect(redirect.trim());
                 return null;
             }
             if (hospede.isRecepcao()) {
