@@ -26,17 +26,38 @@ public class CadastraReservaAction implements ICommand {
                 String telefone = request.getParameter("txtTelefone");
                 String cidade = request.getParameter("txtCidadeOrigem");
                 String senha = request.getParameter("txtSenha");
-                if (senha == null || senha.trim().isEmpty()) {
-                    senha = "123456";
-                }
 
                 HospedeDAO hdao = new HospedeDAO();
-                hospede = hdao.buscarPorEmail(email);
-                if (hospede == null) {
-                    hospede = new Hospede(nome, cpf, email, telefone, cidade, senha);
-                    int hid = hdao.cadastrar(hospede);
-                    hospede.setId(hid);
+                Hospede existente = (email != null && !email.trim().isEmpty()) ? hdao.buscarPorEmail(email.trim()) : null;
+
+                if (existente != null) {
+                    // S1: Se o e-mail já existe e não há sessão, NÃO autentica. Redireciona para o login com mensagem e preserva o fluxo.
+                    String acomodacaoId = request.getParameter("acomodacaoId");
+                    String checkInParam = request.getParameter("txtCheckIn");
+                    String checkOutParam = request.getParameter("txtCheckOut");
+                    String qtdHospedesParam = request.getParameter("txtQtdHospedes");
+
+                    String redirect = "controller.do?btnop=NovaReserva"
+                            + (acomodacaoId != null ? "&acomodacaoId=" + java.net.URLEncoder.encode(acomodacaoId, "UTF-8") : "")
+                            + (checkInParam != null ? "&txtCheckIn=" + java.net.URLEncoder.encode(checkInParam, "UTF-8") : "")
+                            + (checkOutParam != null ? "&txtCheckOut=" + java.net.URLEncoder.encode(checkOutParam, "UTF-8") : "")
+                            + (qtdHospedesParam != null ? "&txtQtdHospedes=" + java.net.URLEncoder.encode(qtdHospedesParam, "UTF-8") : "");
+
+                    request.setAttribute("redirect", redirect);
+                    request.setAttribute("msg", "E-mail já cadastrado, faça login para continuar sua reserva.");
+                    request.setAttribute("tipoMsg", "warning");
+                    return "login.jsp";
                 }
+
+                if (senha == null || senha.trim().length() < 6) {
+                    request.setAttribute("msg", "Para criar seu cadastro, a senha é obrigatória e deve ter pelo menos 6 caracteres.");
+                    request.setAttribute("tipoMsg", "danger");
+                    return "reserva.jsp";
+                }
+
+                hospede = new Hospede(nome, cpf, email, telefone, cidade, senha.trim());
+                int hid = hdao.cadastrar(hospede);
+                hospede.setId(hid);
                 session.setAttribute("usuarioLogado", hospede);
             }
 

@@ -114,14 +114,28 @@
     </header>
 
     <main class="container">
+<%
+    String msg = (String) request.getAttribute("msg");
+    if (msg == null) msg = request.getParameter("msg");
+    String tipoMsg = (String) request.getAttribute("tipoMsg");
+    if (tipoMsg == null) tipoMsg = request.getParameter("tipoMsg");
+%>
+
         <div style="margin-bottom: 1.5rem;">
             <a href="controller.do?btnop=ConsultaTodos" style="color: var(--text-secondary); text-decoration: none; font-size: 0.875rem;">
                 &larr; Voltar para a lista de acomodações
             </a>
         </div>
 
+        <% if (msg != null) { %>
+            <div class="message-bar <%= tipoMsg != null ? tipoMsg : "danger" %>" style="margin-bottom: 1.5rem;">
+                <%= msg %>
+            </div>
+        <% } %>
+
         <form action="controller.do" method="POST" id="formReserva" class="checkout-layout">
             <input type="hidden" name="btnop" value="Cadastra">
+            <input type="hidden" name="acomodacaoId" value="<%= acomodacao.getId() %>">
             <input type="hidden" name="txtTipoQuarto" value="<%= acomodacao.getNome() %>">
             <input type="hidden" id="txtValorDiaria" name="txtValorDiaria" value="<%= acomodacao.getValorDiaria() %>">
 
@@ -244,6 +258,12 @@
                             <div class="form-group">
                                 <label for="txtCidadeOrigem">Cidade de origem</label>
                                 <input type="text" id="txtCidadeOrigem" name="txtCidadeOrigem" class="input-text" placeholder="Ex: São Paulo - SP">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group" style="grid-column: span 2;">
+                                <label for="txtSenha">Crie uma senha de acesso *</label>
+                                <input type="password" id="txtSenha" name="txtSenha" class="input-text" placeholder="Mínimo de 6 caracteres para acessar suas reservas" required minlength="6">
                             </div>
                         </div>
                     <% } %>

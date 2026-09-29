@@ -1,9 +1,14 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%
     String redirect = request.getParameter("redirect");
+    if (redirect == null || redirect.trim().isEmpty()) {
+        redirect = (String) request.getAttribute("redirect");
+    }
     if (redirect == null) redirect = "";
     String msg = (String) request.getAttribute("msg");
+    if (msg == null) msg = request.getParameter("msg");
     String tipoMsg = (String) request.getAttribute("tipoMsg");
+    if (tipoMsg == null) tipoMsg = request.getParameter("tipoMsg");
 %>
 <!DOCTYPE html>
 <html lang="pt-BR">
