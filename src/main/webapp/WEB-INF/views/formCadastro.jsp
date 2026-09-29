@@ -62,14 +62,19 @@
                 </div>
 
                 <h3 class="section-title">Dados da hospedagem</h3>
+                <%
+                    String hojeCadastro = java.time.LocalDate.now().toString();
+                    String padraoInCadastro = java.time.LocalDate.now().plusDays(1).toString();
+                    String padraoOutCadastro = java.time.LocalDate.now().plusDays(6).toString();
+                %>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="txtCheckIn">Check-in</label>
-                        <input type="date" id="txtCheckIn" name="txtCheckIn" class="input-text" value="2026-10-10" required>
+                        <input type="date" id="txtCheckIn" name="txtCheckIn" class="input-text" value="<%= padraoInCadastro %>" min="<%= hojeCadastro %>" required>
                     </div>
                     <div class="form-group">
                         <label for="txtCheckOut">Check-out</label>
-                        <input type="date" id="txtCheckOut" name="txtCheckOut" class="input-text" value="2026-10-15" required>
+                        <input type="date" id="txtCheckOut" name="txtCheckOut" class="input-text" value="<%= padraoOutCadastro %>" min="<%= padraoInCadastro %>" required>
                     </div>
                 </div>
                 <div class="form-row">

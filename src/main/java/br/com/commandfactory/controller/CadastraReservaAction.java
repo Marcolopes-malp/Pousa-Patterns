@@ -209,6 +209,10 @@ public class CadastraReservaAction implements ICommand {
                     .comObservacoes(observacoes)
                     .comStatus("CONFIRMADA");
 
+            if (acomodacao != null && acomodacao.getCapacidadePessoas() > 0) {
+                builder.comCapacidadeMaxima(acomodacao.getCapacidadePessoas());
+            }
+
             for (ItemServico s : servicos) {
                 builder.adicionarServico(s);
             }

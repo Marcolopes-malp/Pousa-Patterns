@@ -66,13 +66,18 @@
                         <% } %>
                     </select>
                 </div>
+                <%
+                    String hojeIndex = java.time.LocalDate.now().toString();
+                    String padraoInIndex = java.time.LocalDate.now().plusDays(1).toString();
+                    String padraoOutIndex = java.time.LocalDate.now().plusDays(6).toString();
+                %>
                 <div class="search-item">
                     <span>Entrada</span>
-                    <input type="date" name="txtCheckIn" value="2026-10-10">
+                    <input type="date" name="txtCheckIn" value="<%= padraoInIndex %>" min="<%= hojeIndex %>">
                 </div>
                 <div class="search-item">
                     <span>Saída</span>
-                    <input type="date" name="txtCheckOut" value="2026-10-15">
+                    <input type="date" name="txtCheckOut" value="<%= padraoOutIndex %>" min="<%= padraoInIndex %>">
                 </div>
                 <div class="search-item">
                     <span>Hóspedes</span>

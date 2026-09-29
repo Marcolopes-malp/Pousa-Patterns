@@ -123,6 +123,13 @@ public class ReservaBuilder {
         return this;
     }
 
+    private int capacidadeMaxima = 0;
+
+    public ReservaBuilder comCapacidadeMaxima(int capacidadeMaxima) {
+        this.capacidadeMaxima = capacidadeMaxima;
+        return this;
+    }
+
     /**
      * Valida os atributos e constrói a instância de Reserva consolidada.
      */
@@ -133,8 +140,31 @@ public class ReservaBuilder {
         if (this.dataCheckOut == null || this.dataCheckOut.trim().isEmpty()) {
             throw new IllegalArgumentException("Data de Check-Out é obrigatória.");
         }
+
+        LocalDate dtIn;
+        LocalDate dtOut;
+        try {
+            dtIn = LocalDate.parse(this.dataCheckIn.trim());
+            dtOut = LocalDate.parse(this.dataCheckOut.trim());
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Datas de check-in e check-out devem estar no formato válido AAAA-MM-DD.");
+        }
+
+        if (!dtOut.isAfter(dtIn)) {
+            throw new IllegalArgumentException("A data de check-out deve ser posterior à data de check-in.");
+        }
+
+        if (this.id == 0 && dtIn.isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("A data de check-in não pode estar no passado.");
+        }
+
         if (this.quantidadeHospedes <= 0) {
-            this.quantidadeHospedes = 1;
+            throw new IllegalArgumentException("A quantidade de hóspedes deve ser de pelo menos 1 pessoa.");
+        }
+
+        if (this.capacidadeMaxima > 0 && this.quantidadeHospedes > this.capacidadeMaxima) {
+            throw new IllegalArgumentException("A quantidade de hóspedes (" + this.quantidadeHospedes
+                    + ") excede a capacidade máxima permitida para esta acomodação (" + this.capacidadeMaxima + " pessoas).");
         }
 
         // Gera código localizador se não tiver
@@ -146,8 +176,6 @@ public class ReservaBuilder {
         // Calcula total se não foi fixado usando a estratégia unificada de precificação
         if (this.valorTotal <= 0.0) {
             try {
-                LocalDate dtIn = LocalDate.parse(this.dataCheckIn);
-                LocalDate dtOut = LocalDate.parse(this.dataCheckOut);
                 long dias = ChronoUnit.DAYS.between(dtIn, dtOut);
                 if (dias <= 0) {
                     dias = 1;

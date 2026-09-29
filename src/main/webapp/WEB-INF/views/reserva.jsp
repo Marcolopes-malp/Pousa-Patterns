@@ -14,10 +14,14 @@
         acomodacao = new AcomodacaoDAO().buscarPorId(id);
     }
 
+    String hojeReserva = java.time.LocalDate.now().toString();
+    String amanhaReserva = java.time.LocalDate.now().plusDays(1).toString();
+    String padraoOutReserva = java.time.LocalDate.now().plusDays(6).toString();
+
     String checkInParam = request.getParameter("txtCheckIn");
-    if (checkInParam == null || checkInParam.isEmpty()) checkInParam = "2026-10-10";
+    if (checkInParam == null || checkInParam.isEmpty()) checkInParam = amanhaReserva;
     String checkOutParam = request.getParameter("txtCheckOut");
-    if (checkOutParam == null || checkOutParam.isEmpty()) checkOutParam = "2026-10-15";
+    if (checkOutParam == null || checkOutParam.isEmpty()) checkOutParam = padraoOutReserva;
     String qtdHospedesParam = request.getParameter("txtQtdHospedes");
     if (qtdHospedesParam == null || qtdHospedesParam.isEmpty()) qtdHospedesParam = "2";
 %>
@@ -165,11 +169,11 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="txtCheckIn">Data de entrada (Check-in)</label>
-                            <input type="date" id="txtCheckIn" name="txtCheckIn" class="input-text" value="<%= Html.esc(checkInParam) %>" required onchange="calcularTotais()">
+                            <input type="date" id="txtCheckIn" name="txtCheckIn" class="input-text" value="<%= Html.esc(checkInParam) %>" min="<%= hojeReserva %>" required onchange="calcularTotais()">
                         </div>
                         <div class="form-group">
                             <label for="txtCheckOut">Data de saída (Check-out)</label>
-                            <input type="date" id="txtCheckOut" name="txtCheckOut" class="input-text" value="<%= Html.esc(checkOutParam) %>" required onchange="calcularTotais()">
+                            <input type="date" id="txtCheckOut" name="txtCheckOut" class="input-text" value="<%= Html.esc(checkOutParam) %>" min="<%= amanhaReserva %>" required onchange="calcularTotais()">
                         </div>
                     </div>
 
