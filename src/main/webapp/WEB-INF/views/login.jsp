@@ -73,7 +73,10 @@
             </div>
 
             <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border-light); font-size: 0.85rem; text-align: center; color: var(--text-secondary);">
-                Ainda não tem conta? <a href="controller.do?btnop=Cadastro&redirect=<%= Html.esc(redirect) %>" style="color: var(--text-primary); font-weight: 700; text-decoration: underline;">Cadastre-se aqui</a>
+                <%
+                    String linkCadastro = "controller.do?btnop=Cadastro" + (redirect != null && !redirect.trim().isEmpty() ? "&redirect=" + java.net.URLEncoder.encode(redirect.trim(), "UTF-8") : "");
+                %>
+                Ainda não tem conta? <a href="<%= Html.esc(linkCadastro) %>" style="color: var(--text-primary); font-weight: 700; text-decoration: underline;">Cadastre-se aqui</a>
             </div>
         </div>
     </div>

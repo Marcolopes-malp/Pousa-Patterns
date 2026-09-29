@@ -111,8 +111,14 @@
                 <% if (usuario != null) { %>
                     <span style="font-size: 0.85rem; color: var(--text-secondary);">Logado como <strong><%= usuario.getNomeCompleto() %></strong></span>
                     <a href="controller.do?btnop=MinhasReservas" class="nav-link">Minhas Reservas</a>
-                <% } else { %>
-                    <a href="login.jsp?redirect=controller.do?btnop=NovaReserva&acomodacaoId=<%= acomodacao.getId() %>" class="nav-link">Já tem cadastro? Entrar</a>
+                <% } else { 
+                    String targetReservaUrl = "controller.do?btnop=NovaReserva&acomodacaoId=" + acomodacao.getId()
+                            + "&txtCheckIn=" + java.net.URLEncoder.encode(checkInParam, "UTF-8")
+                            + "&txtCheckOut=" + java.net.URLEncoder.encode(checkOutParam, "UTF-8")
+                            + "&txtQtdHospedes=" + java.net.URLEncoder.encode(qtdHospedesParam, "UTF-8");
+                    String loginComRedirect = "controller.do?btnop=Login&redirect=" + java.net.URLEncoder.encode(targetReservaUrl, "UTF-8");
+                %>
+                    <a href="<%= loginComRedirect %>" class="nav-link">Já tem cadastro? Entrar</a>
                 <% } %>
             </div>
         </div>
