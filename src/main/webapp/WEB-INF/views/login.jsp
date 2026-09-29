@@ -53,12 +53,12 @@
 
                 <div class="form-group" style="margin-bottom: 1rem;">
                     <label for="txtEmail">E-mail</label>
-                    <input type="email" id="txtEmail" name="txtEmail" class="input-text" placeholder="seu@email.com" value="marco.pedro@pousada.com.br" required>
+                    <input type="email" id="txtEmail" name="txtEmail" class="input-text" placeholder="seu@email.com" required>
                 </div>
 
                 <div class="form-group" style="margin-bottom: 1.5rem;">
                     <label for="txtSenha">Senha</label>
-                    <input type="password" id="txtSenha" name="txtSenha" class="input-text" placeholder="Sua senha" value="123456" required>
+                    <input type="password" id="txtSenha" name="txtSenha" class="input-text" placeholder="Sua senha" required>
                 </div>
 
                 <button type="submit" class="btn-primary-action" style="width: 100%; padding: 0.85rem; border-radius: var(--radius-sm);">
@@ -66,7 +66,13 @@
                 </button>
             </form>
 
-            <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-light); font-size: 0.85rem; text-align: center; color: var(--text-secondary);">
+            <div style="margin-top: 1rem; padding: 0.75rem; background: var(--bg-surface); border-radius: var(--radius-sm); font-size: 0.75rem; color: var(--text-secondary); text-align: center; border: 1px dashed var(--border-default);">
+                <strong>Contas de demonstração para testes:</strong><br>
+                Recepção: <code>recepcao@pousada.com.br</code> (senha: <code>admin123</code>)<br>
+                Hóspede: <code>marco.pedro@pousada.com.br</code> (senha: <code>123456</code>)
+            </div>
+
+            <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border-light); font-size: 0.85rem; text-align: center; color: var(--text-secondary);">
                 Ainda não tem conta? <a href="controller.do?btnop=Cadastro&redirect=<%= Html.esc(redirect) %>" style="color: var(--text-primary); font-weight: 700; text-decoration: underline;">Cadastre-se aqui</a>
             </div>
         </div>

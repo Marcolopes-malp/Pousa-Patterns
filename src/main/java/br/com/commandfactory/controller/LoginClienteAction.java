@@ -18,14 +18,22 @@ public class LoginClienteAction implements ICommand {
         Hospede hospede = dao.autenticar(email, senha);
 
         if (hospede != null) {
+            // S5: Rotação de ID de sessão para mitigar Session Fixation
+            request.changeSessionId();
+
+            boolean isRecepcao = hospede.isRecepcao();
+            // S5: Limpa a credencial do objeto antes de vinculá-lo à sessão HTTP
+            hospede.setSenha(null);
+
             HttpSession session = request.getSession();
             session.setAttribute("usuarioLogado", hospede);
+            session.setAttribute("csrfToken", java.util.UUID.randomUUID().toString());
 
             if (util.Seguranca.isRedirectSeguro(redirect)) {
                 response.sendRedirect(redirect.trim());
                 return null;
             }
-            if (hospede.isRecepcao()) {
+            if (isRecepcao) {
                 response.sendRedirect("controller.do?btnop=Admin");
             } else {
                 response.sendRedirect("controller.do?btnop=MinhasReservas");

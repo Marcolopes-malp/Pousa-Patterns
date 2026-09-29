@@ -55,14 +55,23 @@ public class FabricaConexao {
                     "email VARCHAR(100) NOT NULL UNIQUE, " +
                     "telefone VARCHAR(30) NOT NULL, " +
                     "cidade_origem VARCHAR(100), " +
-                    "senha VARCHAR(100), " +
+                    "senha VARCHAR(255), " +
                     "perfil VARCHAR(20) DEFAULT 'CLIENTE')");
 
             try {
-                stmt.execute("ALTER TABLE hospedes ADD COLUMN IF NOT EXISTS senha VARCHAR(100) DEFAULT '123456'");
+                stmt.execute("ALTER TABLE hospedes ADD COLUMN IF NOT EXISTS senha VARCHAR(255)");
             } catch (Exception ignored) {}
             try {
                 stmt.execute("ALTER TABLE hospedes ADD COLUMN IF NOT EXISTS perfil VARCHAR(20) DEFAULT 'CLIENTE'");
+            } catch (Exception ignored) {}
+
+            String hashAdmin = Seguranca.gerarHashSenha("admin123");
+            String hashCliente = Seguranca.gerarHashSenha("123456");
+
+            // Migração transparente de senhas legadas em texto plano para hashes PBKDF2
+            try {
+                stmt.execute("UPDATE hospedes SET senha = '" + hashAdmin + "' WHERE senha = 'admin123'");
+                stmt.execute("UPDATE hospedes SET senha = '" + hashCliente + "' WHERE senha = '123456'");
             } catch (Exception ignored) {}
 
             // Tabela de Reservas
@@ -96,10 +105,10 @@ public class FabricaConexao {
             var rs = stmt.executeQuery("SELECT count(*) FROM hospedes");
             if (rs.next() && rs.getInt(1) == 0) {
                 stmt.execute("INSERT INTO hospedes (nome_completo, cpf, email, telefone, cidade_origem, senha, perfil) VALUES " +
-                        "('Recepção Pousada Paradiso', '000.000.000-00', 'recepcao@pousada.com.br', '(11) 3333-4444', 'Mogi das Cruzes - SP', 'admin123', 'RECEPCAO'), " +
-                        "('Marco Antonio Lopes Pedro', '458.129.384-90', 'marco.pedro@pousada.com.br', '(11) 98765-4321', 'Mogi das Cruzes - SP', '123456', 'CLIENTE'), " +
-                        "('Mariana Silveira Ramos', '321.654.987-12', 'mariana.ramos@email.com', '(11) 97123-8899', 'São Paulo - SP', '123456', 'CLIENTE'), " +
-                        "('Lucas Henrique Prado', '876.543.210-55', 'lucas.prado@email.com', '(21) 99887-1122', 'Rio de Janeiro - RJ', '123456', 'CLIENTE')");
+                        "('Recepção Pousada Paradiso', '000.000.000-00', 'recepcao@pousada.com.br', '(11) 3333-4444', 'Mogi das Cruzes - SP', '" + hashAdmin + "', 'RECEPCAO'), " +
+                        "('Marco Antonio Lopes Pedro', '458.129.384-90', 'marco.pedro@pousada.com.br', '(11) 98765-4321', 'Mogi das Cruzes - SP', '" + hashCliente + "', 'CLIENTE'), " +
+                        "('Mariana Silveira Ramos', '321.654.987-12', 'mariana.ramos@email.com', '(11) 97123-8899', 'São Paulo - SP', '" + hashCliente + "', 'CLIENTE'), " +
+                        "('Lucas Henrique Prado', '876.543.210-55', 'lucas.prado@email.com', '(21) 99887-1122', 'Rio de Janeiro - RJ', '" + hashCliente + "', 'CLIENTE')");
 
                 stmt.execute("INSERT INTO reservas (codigo_localizador, data_checkin, data_checkout, quantidade_hospedes, tipo_quarto, valor_diaria, valor_total, status, forma_pagamento, observacoes, data_criacao, hospede_id) VALUES " +
                         "('POUS-2026-X01', '2026-10-10', '2026-10-15', 2, 'Bangalô Vista Mar', 450.0, 2450.0, 'CONFIRMADA', 'PIX', 'Hóspedes em comemoração de aniversário.', '2026-09-28', 1), " +
@@ -116,7 +125,7 @@ public class FabricaConexao {
 
             try {
                 stmt.execute("INSERT INTO hospedes (nome_completo, cpf, email, telefone, cidade_origem, senha, perfil) " +
-                        "SELECT 'Recepção Pousada Paradiso', '000.000.000-00', 'recepcao@pousada.com.br', '(11) 3333-4444', 'Mogi das Cruzes - SP', 'admin123', 'RECEPCAO' " +
+                        "SELECT 'Recepção Pousada Paradiso', '000.000.000-00', 'recepcao@pousada.com.br', '(11) 3333-4444', 'Mogi das Cruzes - SP', '" + hashAdmin + "', 'RECEPCAO' " +
                         "WHERE NOT EXISTS (SELECT 1 FROM hospedes WHERE email = 'recepcao@pousada.com.br')");
             } catch (Exception ignored) {}
         } catch (Exception e) {

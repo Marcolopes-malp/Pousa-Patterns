@@ -31,8 +31,13 @@ public class CadastraClienteAction implements ICommand {
             int id = dao.cadastrar(novo);
             novo.setId(id);
 
+            // S5: Rotação de ID de sessão e limpeza de credencial
+            request.changeSessionId();
+            novo.setSenha(null);
+
             HttpSession session = request.getSession();
             session.setAttribute("usuarioLogado", novo);
+            session.setAttribute("csrfToken", java.util.UUID.randomUUID().toString());
 
             if (util.Seguranca.isRedirectSeguro(redirect)) {
                 response.sendRedirect(redirect.trim());

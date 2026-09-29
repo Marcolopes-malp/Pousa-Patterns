@@ -70,7 +70,14 @@ public class CadastraReservaAction implements ICommand {
                 hospede = new Hospede(nome, cpf, email, telefone, cidade, senha.trim());
                 int hid = hdao.cadastrar(hospede);
                 hospede.setId(hid);
+
+                // S5: Rotação de ID de sessão e limpeza de credencial
+                request.changeSessionId();
+                hospede.setSenha(null);
+
+                session = request.getSession();
                 session.setAttribute("usuarioLogado", hospede);
+                session.setAttribute("csrfToken", java.util.UUID.randomUUID().toString());
             }
 
             String checkIn = request.getParameter("txtCheckIn");

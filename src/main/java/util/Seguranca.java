@@ -1,11 +1,26 @@
 package util;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.spec.InvalidKeySpecException;
+import java.util.Base64;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+
 /**
  * Utilitário de segurança para a aplicação Pousada Paradiso.
- * Fornece validações contra vulnerabilidades comuns da web como Open Redirect,
- * CRLF Injection e suporte para operações criptográficas seguras.
+ * Fornece:
+ * 1. Validações contra Open Redirect e CRLF Injection.
+ * 2. Hashing forte de senhas usando PBKDF2WithHmacSHA256 (sem dependências externas).
+ * 3. Comparação em tempo constante para mitigação de timing attacks.
  */
 public class Seguranca {
+
+    private static final String PBKDF2_ALGORITHM = "PBKDF2WithHmacSHA256";
+    private static final int ITERATIONS = 10000;
+    private static final int SALT_BYTES = 16;
+    private static final int HASH_BYTES = 32;
 
     /**
      * Valida se uma URL de redirecionamento é estritamente interna e segura,
@@ -58,5 +73,78 @@ public class Seguranca {
             return url.trim();
         }
         return fallback;
+    }
+
+    /**
+     * Gera um hash criptograficamente seguro para a senha utilizando PBKDF2WithHmacSHA256
+     * com salt aleatório de 128 bits e 10.000 iterações.
+     *
+     * Formato retornado: PBKDF2$10000$saltBase64$hashBase64
+     *
+     * @param senha Senha em texto puro a ser criptografada.
+     * @return String codificada com algoritmo, iterações, salt e hash.
+     */
+    public static String gerarHashSenha(String senha) {
+        if (senha == null) {
+            return null;
+        }
+        try {
+            SecureRandom random = new SecureRandom();
+            byte[] salt = new byte[SALT_BYTES];
+            random.nextBytes(salt);
+
+            byte[] hash = pbkdf2(senha.toCharArray(), salt, ITERATIONS, HASH_BYTES);
+
+            Base64.Encoder enc = Base64.getEncoder();
+            return "PBKDF2$" + ITERATIONS + "$" + enc.encodeToString(salt) + "$" + enc.encodeToString(hash);
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao gerar hash de senha com PBKDF2", e);
+        }
+    }
+
+    /**
+     * Verifica se a senha informada corresponde ao hash armazenado.
+     * Suporta senhas salvas em PBKDF2 e fornece compatibilidade retroativa
+     * para senhas legadas em texto plano (permitindo rehash automático).
+     *
+     * Utiliza MessageDigest.isEqual para prevenção contra ataques de temporização (timing attacks).
+     *
+     * @param senhaInformada Senha em texto puro digitada pelo usuário.
+     * @param hashArmazenado Hash (ou texto puro legado) salvo no banco de dados.
+     * @return true se a senha for válida; false caso contrário.
+     */
+    public static boolean verificarSenha(String senhaInformada, String hashArmazenado) {
+        if (senhaInformada == null || hashArmazenado == null) {
+            return false;
+        }
+
+        // Se o hash armazenado estiver no padrão PBKDF2
+        if (hashArmazenado.startsWith("PBKDF2$")) {
+            try {
+                String[] partes = hashArmazenado.split("\\$");
+                if (partes.length != 4) {
+                    return false;
+                }
+                int iter = Integer.parseInt(partes[1]);
+                byte[] salt = Base64.getDecoder().decode(partes[2]);
+                byte[] hashEsperado = Base64.getDecoder().decode(partes[3]);
+
+                byte[] hashCalculado = pbkdf2(senhaInformada.toCharArray(), salt, iter, hashEsperado.length);
+
+                return MessageDigest.isEqual(hashEsperado, hashCalculado);
+            } catch (Exception e) {
+                return false;
+            }
+        }
+
+        // Fallback para senhas legadas em texto plano (migração transparente)
+        return MessageDigest.isEqual(senhaInformada.getBytes(), hashArmazenado.getBytes());
+    }
+
+    private static byte[] pbkdf2(char[] senha, byte[] salt, int iterations, int bytes)
+            throws NoSuchAlgorithmException, InvalidKeySpecException {
+        PBEKeySpec spec = new PBEKeySpec(senha, salt, iterations, bytes * 8);
+        SecretKeyFactory skf = SecretKeyFactory.getInstance(PBKDF2_ALGORITHM);
+        return skf.generateSecret(spec).getEncoded();
     }
 }

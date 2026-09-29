@@ -21,7 +21,13 @@ public class HospedeDAO {
             comando.setString(3, hospede.getEmail());
             comando.setString(4, hospede.getTelefone());
             comando.setString(5, hospede.getCidadeOrigem());
-            comando.setString(6, hospede.getSenha() != null ? hospede.getSenha() : "123456");
+
+            String senha = hospede.getSenha();
+            String hashParaSalvar = (senha != null && senha.startsWith("PBKDF2$"))
+                    ? senha
+                    : util.Seguranca.gerarHashSenha(senha != null ? senha : "123456");
+
+            comando.setString(6, hashParaSalvar);
             comando.setString(7, hospede.getPerfil() != null ? hospede.getPerfil() : "CLIENTE");
             comando.executeUpdate();
 
@@ -37,18 +43,34 @@ public class HospedeDAO {
     }
 
     public Hospede autenticar(String email, String senha) throws ClassNotFoundException, SQLException {
-        String sql = "SELECT * FROM hospedes WHERE email = ? AND senha = ?";
+        if (email == null || senha == null) {
+            return null;
+        }
+
+        Hospede hospede = buscarPorEmail(email.trim());
+        if (hospede == null) {
+            return null;
+        }
+
+        if (util.Seguranca.verificarSenha(senha.trim(), hospede.getSenha())) {
+            // Se a senha no banco ainda estava em texto puro (legado), migra automaticamente para PBKDF2
+            if (hospede.getSenha() != null && !hospede.getSenha().startsWith("PBKDF2$")) {
+                atualizarSenha(hospede.getId(), util.Seguranca.gerarHashSenha(senha.trim()));
+            }
+            return hospede;
+        }
+
+        return null;
+    }
+
+    public void atualizarSenha(int id, String hashSenha) throws ClassNotFoundException, SQLException {
+        String sql = "UPDATE hospedes SET senha = ? WHERE id = ?";
         try (Connection con = FabricaConexao.getConexao();
              PreparedStatement comando = con.prepareStatement(sql)) {
-            comando.setString(1, email != null ? email.trim() : "");
-            comando.setString(2, senha != null ? senha.trim() : "");
-            try (ResultSet rs = comando.executeQuery()) {
-                if (rs.next()) {
-                    return mapearHospede(rs);
-                }
-            }
+            comando.setString(1, hashSenha);
+            comando.setInt(2, id);
+            comando.executeUpdate();
         }
-        return null;
     }
 
     public Hospede buscarPorEmail(String email) throws ClassNotFoundException, SQLException {
