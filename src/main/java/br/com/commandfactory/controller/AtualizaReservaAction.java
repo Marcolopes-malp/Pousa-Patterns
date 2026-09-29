@@ -103,8 +103,12 @@ public class AtualizaReservaAction implements ICommand {
             request.setAttribute("tipoMsg", "success");
             return "resultado.jsp";
         } catch (Exception e) {
-            e.printStackTrace();
-            request.setAttribute("msg", "Erro ao atualizar reserva: " + e.getMessage());
+            java.util.logging.Logger.getLogger(AtualizaReservaAction.class.getName())
+                    .log(java.util.logging.Level.SEVERE, "Erro ao atualizar dados da reserva", e);
+            String msg = (e instanceof IllegalArgumentException)
+                    ? e.getMessage()
+                    : "Não foi possível atualizar os dados da reserva no momento. Por favor, tente novamente.";
+            request.setAttribute("msg", msg);
             request.setAttribute("tipoMsg", "danger");
             return "resultado.jsp";
         }

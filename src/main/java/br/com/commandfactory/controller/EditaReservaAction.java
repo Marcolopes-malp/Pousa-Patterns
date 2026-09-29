@@ -43,8 +43,9 @@ public class EditaReservaAction implements ICommand {
                 return "resultado.jsp";
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            request.setAttribute("msg", "Erro ao preparar edição: " + e.getMessage());
+            java.util.logging.Logger.getLogger(EditaReservaAction.class.getName())
+                    .log(java.util.logging.Level.SEVERE, "Erro ao preparar edição da reserva", e);
+            request.setAttribute("msg", "Não foi possível carregar os dados para edição no momento.");
             request.setAttribute("tipoMsg", "danger");
             return "resultado.jsp";
         }

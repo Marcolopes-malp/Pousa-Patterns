@@ -52,8 +52,9 @@ public class ConsultaByIdReservaAction implements ICommand {
             return "detalhesReserva.jsp";
 
         } catch (Exception e) {
-            e.printStackTrace();
-            request.setAttribute("msg", "Erro ao consultar reserva por ID: " + e.getMessage());
+            java.util.logging.Logger.getLogger(ConsultaByIdReservaAction.class.getName())
+                    .log(java.util.logging.Level.SEVERE, "Erro ao consultar reserva por ID", e);
+            request.setAttribute("msg", "Não foi possível carregar os detalhes da reserva no momento.");
             request.setAttribute("tipoMsg", "danger");
             return "resultado.jsp";
         }

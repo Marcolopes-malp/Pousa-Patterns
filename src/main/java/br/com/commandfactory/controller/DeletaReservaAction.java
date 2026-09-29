@@ -50,8 +50,9 @@ public class DeletaReservaAction implements ICommand {
             request.setAttribute("tipoMsg", "success");
             return "resultado.jsp";
         } catch (Exception e) {
-            e.printStackTrace();
-            request.setAttribute("msg", "Erro ao excluir reserva: " + e.getMessage());
+            java.util.logging.Logger.getLogger(DeletaReservaAction.class.getName())
+                    .log(java.util.logging.Level.SEVERE, "Erro ao excluir reserva", e);
+            request.setAttribute("msg", "Não foi possível excluir a reserva no momento. Por favor, tente novamente.");
             request.setAttribute("tipoMsg", "danger");
             return "resultado.jsp";
         }

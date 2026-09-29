@@ -97,8 +97,8 @@ public class ProcessarCheckInAutomaticoReservaAction implements ICommand {
             // Total Consolidado
             double novoTotal = subtotalComDesconto + totalServicos + taxaAmbiental;
 
-            // 5. Geração do PIN Smart-Lock
-            int pin = (int) (1000 + Math.random() * 9000);
+            // 5. Geração do PIN Smart-Lock com gerador criptograficamente seguro (CSPRNG)
+            int pin = util.Seguranca.gerarPinFechaduraSeguro();
 
             // 6. Atualização de status e observações
             reserva.setStatus("CHECKIN_ATIVO");
@@ -123,8 +123,12 @@ public class ProcessarCheckInAutomaticoReservaAction implements ICommand {
 
             return "detalhesReserva.jsp";
         } catch (Exception e) {
-            e.printStackTrace();
-            request.setAttribute("msg", "Erro no processamento automatizado: " + e.getMessage());
+            java.util.logging.Logger.getLogger(ProcessarCheckInAutomaticoReservaAction.class.getName())
+                    .log(java.util.logging.Level.SEVERE, "Erro ao processar check-in automatizado", e);
+            String msg = (e instanceof IllegalArgumentException)
+                    ? e.getMessage()
+                    : "Não foi possível concluir o check-in online no momento. Por favor, tente novamente ou procure a recepção.";
+            request.setAttribute("msg", msg);
             request.setAttribute("tipoMsg", "danger");
             return "resultado.jsp";
         }

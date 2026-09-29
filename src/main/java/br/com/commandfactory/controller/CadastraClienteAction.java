@@ -47,8 +47,12 @@ public class CadastraClienteAction implements ICommand {
             return null;
 
         } catch (Exception e) {
-            e.printStackTrace();
-            request.setAttribute("msg", "Erro ao realizar cadastro: " + e.getMessage());
+            java.util.logging.Logger.getLogger(CadastraClienteAction.class.getName())
+                    .log(java.util.logging.Level.SEVERE, "Erro ao realizar cadastro de cliente", e);
+            String msg = (e instanceof IllegalArgumentException)
+                    ? e.getMessage()
+                    : "Não foi possível concluir o cadastro no momento. Por favor, tente novamente.";
+            request.setAttribute("msg", msg);
             request.setAttribute("tipoMsg", "danger");
             return "cadastro.jsp";
         }

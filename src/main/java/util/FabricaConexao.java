@@ -18,20 +18,40 @@ public class FabricaConexao {
     public static Connection getConexao() throws ClassNotFoundException, SQLException {
         Connection con = null;
 
-        // 1. Tenta conectar no MySQL (ambiente padrão ensinado na UMC)
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            String urlMySQL = "jdbc:mysql://localhost:3306/pousada_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
-            String userMySQL = "root";
-            String passMySQL = "";
-            con = DriverManager.getConnection(urlMySQL, userMySQL, passMySQL);
-        } catch (Exception ex) {
-            // 2. Fallback inteligente: H2 em arquivo local para permitir execução instantânea
-            Class.forName("org.h2.Driver");
-            String urlH2 = "jdbc:h2:./pousada_db;DB_CLOSE_DELAY=-1;MODE=MySQL";
-            String userH2 = "sa";
-            String passH2 = "";
-            con = DriverManager.getConnection(urlH2, userH2, passH2);
+        // 1. Variáveis de Ambiente (12-Factor App / Produção / Containers)
+        String envUrl = System.getenv("DB_URL");
+        String envUser = System.getenv("DB_USER");
+        String envPass = System.getenv("DB_PASS");
+
+        if (envUrl != null && !envUrl.trim().isEmpty()) {
+            try {
+                if (envUrl.contains("mysql")) {
+                    Class.forName("com.mysql.cj.jdbc.Driver");
+                } else if (envUrl.contains("h2")) {
+                    Class.forName("org.h2.Driver");
+                }
+                String user = (envUser != null) ? envUser : "";
+                String pass = (envPass != null) ? envPass : "";
+                con = DriverManager.getConnection(envUrl.trim(), user, pass);
+            } catch (Exception ignored) {}
+        }
+
+        // 2. MySQL Local (ambiente padrão acadêmico)
+        if (con == null) {
+            try {
+                Class.forName("com.mysql.cj.jdbc.Driver");
+                String urlMySQL = "jdbc:mysql://localhost:3306/pousada_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
+                String userMySQL = "root";
+                String passMySQL = "";
+                con = DriverManager.getConnection(urlMySQL, userMySQL, passMySQL);
+            } catch (Exception ex) {
+                // 3. Fallback inteligente: H2 em arquivo local para permitir execução instantânea
+                Class.forName("org.h2.Driver");
+                String urlH2 = "jdbc:h2:./pousada_db;DB_CLOSE_DELAY=-1;MODE=MySQL";
+                String userH2 = "sa";
+                String passH2 = "";
+                con = DriverManager.getConnection(urlH2, userH2, passH2);
+            }
         }
 
         if (!tabelasInicializadas) {

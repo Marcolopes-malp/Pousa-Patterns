@@ -18,6 +18,8 @@ import javax.servlet.http.HttpServletResponse;
 @WebServlet(name = "ManterReserva", urlPatterns = {"/ManterReserva", "/controller.do"})
 public class ManterReserva extends HttpServlet {
 
+    private static final java.util.logging.Logger LOGGER = java.util.logging.Logger.getLogger(ManterReserva.class.getName());
+
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
@@ -90,13 +92,13 @@ public class ManterReserva extends HttpServlet {
             }
 
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            request.setAttribute("msg", "Erro 404: Comando de ação não encontrado no sistema.");
-            request.setAttribute("tipoMsg", "danger");
+            LOGGER.log(java.util.logging.Level.WARNING, "Comando de ação não encontrado", e);
+            request.setAttribute("msg", "Ação solicitada não foi encontrada no sistema.");
+            request.setAttribute("tipoMsg", "warning");
             request.getRequestDispatcher("/WEB-INF/views/resultado.jsp").forward(request, response);
         } catch (Exception e) {
-            e.printStackTrace();
-            request.setAttribute("msg", "Erro interno no processamento da requisição: " + e.getMessage());
+            LOGGER.log(java.util.logging.Level.SEVERE, "Erro interno no processamento da requisição", e);
+            request.setAttribute("msg", "Ocorreu um erro interno ao processar a requisição. Por favor, tente novamente.");
             request.setAttribute("tipoMsg", "danger");
             request.getRequestDispatcher("/WEB-INF/views/resultado.jsp").forward(request, response);
         }

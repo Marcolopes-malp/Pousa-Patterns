@@ -224,8 +224,12 @@ public class CadastraReservaAction implements ICommand {
             return "detalhesReserva.jsp";
 
         } catch (Exception e) {
-            e.printStackTrace();
-            request.setAttribute("msg", "Não foi possível concluir a reserva: " + e.getMessage());
+            java.util.logging.Logger.getLogger(CadastraReservaAction.class.getName())
+                    .log(java.util.logging.Level.SEVERE, "Erro ao cadastrar reserva", e);
+            String msg = (e instanceof IllegalArgumentException)
+                    ? e.getMessage()
+                    : "Não foi possível concluir a reserva no momento. Por favor, tente novamente.";
+            request.setAttribute("msg", msg);
             request.setAttribute("tipoMsg", "danger");
             return "resultado.jsp";
         }

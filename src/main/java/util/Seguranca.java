@@ -147,4 +147,15 @@ public class Seguranca {
         SecretKeyFactory skf = SecretKeyFactory.getInstance(PBKDF2_ALGORITHM);
         return skf.generateSecret(spec).getEncoded();
     }
+
+    /**
+     * Gera um PIN numérico de 4 dígitos criptograficamente seguro para fechaduras digitais (Smart-Lock),
+     * utilizando java.security.SecureRandom para eliminar previsibilidade.
+     *
+     * @return PIN de 4 dígitos entre 1000 e 9999.
+     */
+    public static int gerarPinFechaduraSeguro() {
+        SecureRandom random = new SecureRandom();
+        return 1000 + random.nextInt(9000);
+    }
 }

@@ -19,8 +19,9 @@ public class ConsultaTodosReservaAction implements ICommand {
             request.setAttribute("listaReservas", lista);
             return "index.jsp";
         } catch (Exception e) {
-            e.printStackTrace();
-            request.setAttribute("msg", "Erro ao listar reservas: " + e.getMessage());
+            java.util.logging.Logger.getLogger(ConsultaTodosReservaAction.class.getName())
+                    .log(java.util.logging.Level.SEVERE, "Erro ao listar reservas", e);
+            request.setAttribute("msg", "Não foi possível carregar a lista de reservas no momento.");
             request.setAttribute("tipoMsg", "danger");
             return "resultado.jsp";
         }
