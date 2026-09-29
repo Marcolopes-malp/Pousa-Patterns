@@ -1,10 +1,11 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@page import="model.Reserva"%>
 <%@page import="model.Hospede"%>
+<%@page import="util.Html"%>
 <%
     Reserva r = (Reserva) request.getAttribute("reserva");
     if (r == null) {
-        response.sendRedirect("admin.jsp");
+        response.sendRedirect("controller.do?btnop=Admin");
         return;
     }
     Hospede h = r.getHospede();
@@ -15,7 +16,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editar Reserva <%= r.getCodigoLocalizador() %> | Pousada Paradiso</title>
+    <title>Editar Reserva <%= Html.esc(r.getCodigoLocalizador()) %> | Pousada Paradiso</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body style="background: var(--bg-surface);">
@@ -28,7 +29,7 @@
                 <span class="brand-badge">Painel Recepção</span>
             </a>
             <div class="nav-right">
-                <a href="admin.jsp" class="nav-link">&larr; Voltar para a gestão</a>
+                <a href="controller.do?btnop=Admin" class="nav-link">&larr; Voltar para a gestão</a>
             </div>
         </div>
     </header>
@@ -39,10 +40,10 @@
                 <div>
                     <h1 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.2rem;">Editar Reserva</h1>
                     <p style="color: var(--text-secondary); font-size: 0.9rem;">
-                        Código: <strong><%= r.getCodigoLocalizador() %></strong>
+                        Código: <strong><%= Html.esc(r.getCodigoLocalizador()) %></strong>
                     </p>
                 </div>
-                <span class="status-badge <%= r.getStatus() %>"><%= r.getStatus() %></span>
+                <span class="status-badge <%= Html.esc(r.getStatus()) %>"><%= Html.esc(r.getStatus()) %></span>
             </div>
 
             <form action="controller.do" method="POST">
@@ -50,33 +51,33 @@
                 <input type="hidden" name="csrfToken" value="<%= session.getAttribute("csrfToken") %>">
                 <input type="hidden" name="txtId" value="<%= r.getId() %>">
                 <input type="hidden" name="txtHospedeId" value="<%= h.getId() %>">
-                <input type="hidden" name="txtCodigo" value="<%= r.getCodigoLocalizador() %>">
+                <input type="hidden" name="txtCodigo" value="<%= Html.esc(r.getCodigoLocalizador()) %>">
 
                 <h3 class="section-title">Hóspede titular</h3>
                 <div class="form-row">
                     <div class="form-group" style="grid-column: span 2;">
                         <label for="txtNomeHospede">Nome completo</label>
-                        <input type="text" id="txtNomeHospede" name="txtNomeHospede" class="input-text" value="<%= h.getNomeCompleto() != null ? h.getNomeCompleto() : "" %>" required>
+                        <input type="text" id="txtNomeHospede" name="txtNomeHospede" class="input-text" value="<%= Html.esc(h.getNomeCompleto()) %>" required>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="txtCpf">CPF</label>
-                        <input type="text" id="txtCpf" name="txtCpf" class="input-text" value="<%= h.getCpf() != null ? h.getCpf() : "" %>" required>
+                        <input type="text" id="txtCpf" name="txtCpf" class="input-text" value="<%= Html.esc(h.getCpf()) %>" required>
                     </div>
                     <div class="form-group">
                         <label for="txtTelefone">Telefone</label>
-                        <input type="text" id="txtTelefone" name="txtTelefone" class="input-text" value="<%= h.getTelefone() != null ? h.getTelefone() : "" %>" required>
+                        <input type="text" id="txtTelefone" name="txtTelefone" class="input-text" value="<%= Html.esc(h.getTelefone()) %>" required>
                     </div>
                 </div>
                 <div class="form-row" style="margin-bottom: 2rem;">
                     <div class="form-group">
                         <label for="txtEmail">E-mail</label>
-                        <input type="email" id="txtEmail" name="txtEmail" class="input-text" value="<%= h.getEmail() != null ? h.getEmail() : "" %>" required>
+                        <input type="email" id="txtEmail" name="txtEmail" class="input-text" value="<%= Html.esc(h.getEmail()) %>" required>
                     </div>
                     <div class="form-group">
                         <label for="txtCidadeOrigem">Cidade de origem</label>
-                        <input type="text" id="txtCidadeOrigem" name="txtCidadeOrigem" class="input-text" value="<%= h.getCidadeOrigem() != null ? h.getCidadeOrigem() : "" %>">
+                        <input type="text" id="txtCidadeOrigem" name="txtCidadeOrigem" class="input-text" value="<%= Html.esc(h.getCidadeOrigem()) %>">
                     </div>
                 </div>
 
@@ -84,17 +85,17 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="txtCheckIn">Check-in</label>
-                        <input type="date" id="txtCheckIn" name="txtCheckIn" class="input-text" value="<%= r.getDataCheckIn() %>" required>
+                        <input type="date" id="txtCheckIn" name="txtCheckIn" class="input-text" value="<%= Html.esc(r.getDataCheckIn()) %>" required>
                     </div>
                     <div class="form-group">
                         <label for="txtCheckOut">Check-out</label>
-                        <input type="date" id="txtCheckOut" name="txtCheckOut" class="input-text" value="<%= r.getDataCheckOut() %>" required>
+                        <input type="date" id="txtCheckOut" name="txtCheckOut" class="input-text" value="<%= Html.esc(r.getDataCheckOut()) %>" required>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="txtTipoQuarto">Acomodação</label>
-                        <input type="text" id="txtTipoQuarto" name="txtTipoQuarto" class="input-text" value="<%= r.getTipoQuarto() %>" required>
+                        <input type="text" id="txtTipoQuarto" name="txtTipoQuarto" class="input-text" value="<%= Html.esc(r.getTipoQuarto()) %>" required>
                     </div>
                     <div class="form-group">
                         <label for="txtValorDiaria">Valor da diária (R$)</label>
@@ -135,11 +136,11 @@
 
                 <div class="form-group" style="margin-bottom: 2rem;">
                     <label for="txtObservacoes">Observações</label>
-                    <textarea id="txtObservacoes" name="txtObservacoes" class="input-text" rows="2"><%= r.getObservacoes() != null ? r.getObservacoes() : "" %></textarea>
+                    <textarea id="txtObservacoes" name="txtObservacoes" class="input-text" rows="2"><%= Html.esc(r.getObservacoes()) %></textarea>
                 </div>
 
                 <div style="display: flex; justify-content: flex-end; gap: 1rem;">
-                    <a href="admin.jsp" class="btn-secondary-action">Cancelar</a>
+                    <a href="controller.do?btnop=Admin" class="btn-secondary-action">Cancelar</a>
                     <button type="submit" class="btn-primary-action">
                         Atualizar dados
                     </button>

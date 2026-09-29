@@ -3,10 +3,11 @@
 <%@page import="model.Reserva"%>
 <%@page import="model.Hospede"%>
 <%@page import="model.ItemServico"%>
+<%@page import="util.Html"%>
 <%
     Hospede usuario = (Hospede) session.getAttribute("usuarioLogado");
     if (usuario == null) {
-        response.sendRedirect("login.jsp");
+        response.sendRedirect("controller.do?btnop=Login");
         return;
     }
     List<Reserva> lista = (List<Reserva>) request.getAttribute("listaMinhasReservas");
@@ -30,8 +31,8 @@
             <div class="nav-right">
                 <a href="controller.do?btnop=ConsultaTodos" class="nav-link">Explorar Acomodações</a>
                 <div class="user-pill">
-                    <div class="user-avatar"><%= usuario.getNomeCompleto().substring(0, 1).toUpperCase() %></div>
-                    <span><%= usuario.getNomeCompleto().split(" ")[0] %></span>
+                    <div class="user-avatar"><%= Html.esc(usuario.getNomeCompleto().substring(0, 1).toUpperCase()) %></div>
+                    <span><%= Html.esc(usuario.getNomeCompleto().split(" ")[0]) %></span>
                 </div>
                 <form action="controller.do" method="POST" style="display:inline;">
                     <input type="hidden" name="btnop" value="LogoutCliente">
@@ -57,27 +58,27 @@
                 <div class="booking-card">
                     <div>
                         <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
-                            <span class="status-badge <%= r.getStatus() %>"><%= r.getStatus() %></span>
-                            <span style="font-size: 0.8rem; color: var(--text-secondary);">Código: <strong><%= r.getCodigoLocalizador() %></strong></span>
+                            <span class="status-badge <%= Html.esc(r.getStatus()) %>"><%= Html.esc(r.getStatus()) %></span>
+                            <span style="font-size: 0.8rem; color: var(--text-secondary);">Código: <strong><%= Html.esc(r.getCodigoLocalizador()) %></strong></span>
                         </div>
 
-                        <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.35rem;"><%= r.getTipoQuarto() %></h3>
+                        <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.35rem;"><%= Html.esc(r.getTipoQuarto()) %></h3>
                         <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.75rem;">
-                            📅 <%= r.getDataCheckIn() %> &rarr; <%= r.getDataCheckOut() %> • <%= r.getQuantidadeHospedes() %> hóspedes
+                            📅 <%= Html.esc(r.getDataCheckIn()) %> &rarr; <%= Html.esc(r.getDataCheckOut()) %> • <%= r.getQuantidadeHospedes() %> hóspedes
                         </p>
 
                         <% if (r.getServicos() != null && !r.getServicos().isEmpty()) { %>
                             <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
                                 <strong>Serviços inclusos:</strong>
                                 <% for (ItemServico s : r.getServicos()) { %>
-                                    <span style="background: var(--bg-surface); padding: 0.15rem 0.45rem; border-radius: 4px; margin-right: 0.3rem;"><%= s.getNome() %></span>
+                                    <span style="background: var(--bg-surface); padding: 0.15rem 0.45rem; border-radius: 4px; margin-right: 0.3rem;"><%= Html.esc(s.getNome()) %></span>
                                 <% } %>
                             </div>
                         <% } %>
 
                         <% if (r.getObservacoes() != null && !r.getObservacoes().isEmpty()) { %>
                             <div style="font-size: 0.8rem; background: #F8FAFC; border: 1px solid var(--border-light); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm); color: #334155;">
-                                <%= r.getObservacoes() %>
+                                <%= Html.esc(r.getObservacoes()) %>
                             </div>
                         <% } %>
                     </div>
@@ -86,7 +87,7 @@
                         <div style="text-align: right;">
                             <span style="font-size: 0.8rem; color: var(--text-secondary);">Valor total:</span>
                             <div style="font-size: 1.4rem; font-weight: 800;">R$ <%= String.format("%.2f", r.getValorTotal()) %></div>
-                            <span style="font-size: 0.75rem; color: var(--text-secondary);"><%= r.getFormaPagamento() %></span>
+                            <span style="font-size: 0.75rem; color: var(--text-secondary);"><%= Html.esc(r.getFormaPagamento()) %></span>
                         </div>
 
                         <div style="display: flex; flex-direction: column; gap: 0.5rem; width: 100%; margin-top: 1rem;">

@@ -2,6 +2,7 @@
 <%@page import="model.Hospede"%>
 <%@page import="model.Acomodacao"%>
 <%@page import="dao.AcomodacaoDAO"%>
+<%@page import="util.Html"%>
 <%
     Hospede usuario = (Hospede) session.getAttribute("usuarioLogado");
     Acomodacao acomodacao = (Acomodacao) request.getAttribute("acomodacao");
@@ -25,7 +26,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finalizar Reserva | <%= acomodacao.getNome() %></title>
+    <title>Finalizar Reserva | <%= Html.esc(acomodacao.getNome()) %></title>
     <link rel="stylesheet" href="css/style.css">
     <style>
         .step-container {
@@ -128,8 +129,8 @@
         </div>
 
         <% if (msg != null) { %>
-            <div class="message-bar <%= tipoMsg != null ? tipoMsg : "danger" %>" style="margin-bottom: 1.5rem;">
-                <%= msg %>
+            <div class="message-bar <%= tipoMsg != null ? Html.esc(tipoMsg) : "danger" %>" style="margin-bottom: 1.5rem;">
+                <%= Html.esc(msg) %>
             </div>
         <% } %>
 
@@ -137,7 +138,7 @@
             <input type="hidden" name="btnop" value="Cadastra">
             <input type="hidden" name="csrfToken" value="<%= session.getAttribute("csrfToken") %>">
             <input type="hidden" name="acomodacaoId" value="<%= acomodacao.getId() %>">
-            <input type="hidden" name="txtTipoQuarto" value="<%= acomodacao.getNome() %>">
+            <input type="hidden" name="txtTipoQuarto" value="<%= Html.esc(acomodacao.getNome()) %>">
             <input type="hidden" id="txtValorDiaria" name="txtValorDiaria" value="<%= acomodacao.getValorDiaria() %>">
 
             <div class="checkout-main">
@@ -152,8 +153,8 @@
                     <div style="background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 1rem; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between;">
                         <div>
                             <span style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--text-secondary);">Acomodação selecionada</span>
-                            <div style="font-weight: 800; font-size: 1rem; margin-top: 0.15rem;"><%= acomodacao.getNome() %></div>
-                            <div style="font-size: 0.8rem; color: var(--text-secondary);"><%= acomodacao.getTipo() %> • Capacidade até <%= acomodacao.getCapacidadePessoas() %> pessoas</div>
+                            <div style="font-weight: 800; font-size: 1rem; margin-top: 0.15rem;"><%= Html.esc(acomodacao.getNome()) %></div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);"><%= Html.esc(acomodacao.getTipo()) %> • Capacidade até <%= acomodacao.getCapacidadePessoas() %> pessoas</div>
                         </div>
                         <div style="text-align: right;">
                             <div style="font-weight: 800; font-size: 1.1rem;">R$ <%= String.format("%.0f", acomodacao.getValorDiaria()) %></div>
@@ -164,11 +165,11 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="txtCheckIn">Data de entrada (Check-in)</label>
-                            <input type="date" id="txtCheckIn" name="txtCheckIn" class="input-text" value="<%= checkInParam %>" required onchange="calcularTotais()">
+                            <input type="date" id="txtCheckIn" name="txtCheckIn" class="input-text" value="<%= Html.esc(checkInParam) %>" required onchange="calcularTotais()">
                         </div>
                         <div class="form-group">
                             <label for="txtCheckOut">Data de saída (Check-out)</label>
-                            <input type="date" id="txtCheckOut" name="txtCheckOut" class="input-text" value="<%= checkOutParam %>" required onchange="calcularTotais()">
+                            <input type="date" id="txtCheckOut" name="txtCheckOut" class="input-text" value="<%= Html.esc(checkOutParam) %>" required onchange="calcularTotais()">
                         </div>
                     </div>
 
@@ -228,11 +229,11 @@
                     <% if (usuario != null) { %>
                         <div style="background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 1.25rem;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                                <div style="font-weight: 800; font-size: 1.05rem;"><%= usuario.getNomeCompleto() %></div>
+                                <div style="font-weight: 800; font-size: 1.05rem;"><%= Html.esc(usuario.getNomeCompleto()) %></div>
                                 <span class="status-badge CONFIRMADA">Conta verificada</span>
                             </div>
-                            <div style="color: var(--text-secondary); font-size: 0.85rem;">CPF: <strong><%= usuario.getCpf() %></strong> • E-mail: <strong><%= usuario.getEmail() %></strong></div>
-                            <div style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.2rem;">Telefone: <strong><%= usuario.getTelefone() %></strong> • Origem: <strong><%= usuario.getCidadeOrigem() %></strong></div>
+                            <div style="color: var(--text-secondary); font-size: 0.85rem;">CPF: <strong><%= Html.esc(usuario.getCpf()) %></strong> • E-mail: <strong><%= Html.esc(usuario.getEmail()) %></strong></div>
+                            <div style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.2rem;">Telefone: <strong><%= Html.esc(usuario.getTelefone()) %></strong> • Origem: <strong><%= Html.esc(usuario.getCidadeOrigem()) %></strong></div>
                         </div>
                     <% } else { %>
                         <div class="form-row">

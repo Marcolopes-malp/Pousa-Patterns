@@ -1,4 +1,5 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page import="util.Html"%>
 <%
     String msg = (String) request.getAttribute("msg");
     if (msg == null) {
@@ -33,8 +34,8 @@
 
     <div style="max-width: 520px; margin: 4rem auto; width: 100%; padding: 0 1rem;">
         <div style="background: #FFFFFF; border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 2.5rem; text-align: center; box-shadow: var(--shadow-card);">
-            <div class="message-bar <%= tipoMsg %>" style="margin-bottom: 1.5rem; font-size: 1rem;">
-                <%= msg %>
+            <div class="message-bar <%= Html.esc(tipoMsg) %>" style="margin-bottom: 1.5rem; font-size: 1rem;">
+                <%= Html.esc(msg) %>
             </div>
 
             <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 2rem;">

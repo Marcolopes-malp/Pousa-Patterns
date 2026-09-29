@@ -17,7 +17,7 @@
                 <span class="brand-badge">Painel Recepção</span>
             </a>
             <div class="nav-right">
-                <a href="admin.jsp" class="nav-link">&larr; Voltar para a gestão</a>
+                <a href="controller.do?btnop=Admin" class="nav-link">&larr; Voltar para a gestão</a>
             </div>
         </div>
     </header>
@@ -137,7 +137,7 @@
                 </div>
 
                 <div style="display: flex; justify-content: flex-end; gap: 1rem;">
-                    <a href="admin.jsp" class="btn-secondary-action">Cancelar</a>
+                    <a href="controller.do?btnop=Admin" class="btn-secondary-action">Cancelar</a>
                     <button type="submit" class="btn-primary-action">
                         Salvar reserva
                     </button>

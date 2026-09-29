@@ -2,6 +2,7 @@
 <%@page import="model.Reserva"%>
 <%@page import="model.Hospede"%>
 <%@page import="model.ItemServico"%>
+<%@page import="util.Html"%>
 <%
     Reserva r = (Reserva) request.getAttribute("reserva");
     if (r == null) {
@@ -18,7 +19,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Comprovante de Reserva <%= r.getCodigoLocalizador() %> | Pousada Paradiso</title>
+    <title>Comprovante de Reserva <%= Html.esc(r.getCodigoLocalizador()) %> | Pousada Paradiso</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -44,7 +45,7 @@
                 Check-in online realizado com sucesso
             </div>
             <div>
-                PIN de acesso da fechadura digital: <strong style="font-size: 1.2rem; letter-spacing: 2px;"><%= pinAcesso %></strong>
+                PIN de acesso da fechadura digital: <strong style="font-size: 1.2rem; letter-spacing: 2px;"><%= Html.esc(pinAcesso) %></strong>
             </div>
             <div style="font-size: 0.85rem; font-weight: 400; margin-top: 0.4rem; color: #1E4620;">
                 O quarto está liberado para sua chegada a partir das 14h00.
@@ -55,12 +56,12 @@
         <div style="background: #FFFFFF; border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 2.5rem; box-shadow: var(--shadow-card);">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border-light); margin-bottom: 1.5rem;">
                 <div>
-                    <span class="status-badge <%= r.getStatus() %>" style="margin-bottom: 0.5rem;"><%= r.getStatus() %></span>
+                    <span class="status-badge <%= Html.esc(r.getStatus()) %>" style="margin-bottom: 0.5rem;"><%= Html.esc(r.getStatus()) %></span>
                     <h1 style="font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em;">
-                        Reserva <%= r.getCodigoLocalizador() %>
+                        Reserva <%= Html.esc(r.getCodigoLocalizador()) %>
                     </h1>
                     <p style="color: var(--text-secondary); font-size: 0.85rem;">
-                        Emitida em <%= r.getDataCriacao() %>
+                        Emitida em <%= Html.esc(r.getDataCriacao()) %>
                     </p>
                 </div>
                 <div style="display: flex; gap: 0.5rem;">
@@ -86,9 +87,9 @@
                     <h3 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary);">
                         Acomodação
                     </h3>
-                    <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.25rem;"><%= r.getTipoQuarto() %></div>
-                    <div style="color: var(--text-secondary); font-size: 0.85rem;">Entrada: <strong><%= r.getDataCheckIn() %></strong> (a partir das 14h)</div>
-                    <div style="color: var(--text-secondary); font-size: 0.85rem;">Saída: <strong><%= r.getDataCheckOut() %></strong> (até as 12h)</div>
+                    <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.25rem;"><%= Html.esc(r.getTipoQuarto()) %></div>
+                    <div style="color: var(--text-secondary); font-size: 0.85rem;">Entrada: <strong><%= Html.esc(r.getDataCheckIn()) %></strong> (a partir das 14h)</div>
+                    <div style="color: var(--text-secondary); font-size: 0.85rem;">Saída: <strong><%= Html.esc(r.getDataCheckOut()) %></strong> (até as 12h)</div>
                     <div style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.25rem;"><%= r.getQuantidadeHospedes() %> hóspedes</div>
                 </div>
 
@@ -96,10 +97,10 @@
                     <h3 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary);">
                         Titular da reserva
                     </h3>
-                    <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.25rem;"><%= h.getNomeCompleto() %></div>
-                    <div style="color: var(--text-secondary); font-size: 0.85rem;"><%= h.getEmail() %></div>
-                    <div style="color: var(--text-secondary); font-size: 0.85rem;"><%= h.getTelefone() %></div>
-                    <div style="color: var(--text-secondary); font-size: 0.85rem;">CPF: <%= h.getCpf() %></div>
+                    <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.25rem;"><%= Html.esc(h.getNomeCompleto()) %></div>
+                    <div style="color: var(--text-secondary); font-size: 0.85rem;"><%= Html.esc(h.getEmail()) %></div>
+                    <div style="color: var(--text-secondary); font-size: 0.85rem;"><%= Html.esc(h.getTelefone()) %></div>
+                    <div style="color: var(--text-secondary); font-size: 0.85rem;">CPF: <%= Html.esc(h.getCpf()) %></div>
                 </div>
             </div>
 
@@ -111,8 +112,8 @@
                     <% for (ItemServico s : r.getServicos()) { %>
                     <div style="display: flex; justify-content: space-between; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-light);">
                         <div>
-                            <strong><%= s.getNome() %></strong>
-                            <div style="font-size: 0.8rem; color: var(--text-secondary);"><%= s.getDescricao() %></div>
+                            <strong><%= Html.esc(s.getNome()) %></strong>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);"><%= Html.esc(s.getDescricao()) %></div>
                         </div>
                         <div style="text-align: right;">
                             <div>R$ <%= String.format("%.2f", s.getSubtotal()) %></div>
@@ -128,7 +129,7 @@
             <div style="border-top: 1px solid var(--border-light); padding-top: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
                 <div>
                     <div style="font-size: 0.85rem; color: var(--text-secondary);">Forma de pagamento</div>
-                    <div style="font-weight: 700;"><%= r.getFormaPagamento() %></div>
+                    <div style="font-weight: 700;"><%= Html.esc(r.getFormaPagamento()) %></div>
                 </div>
                 <div style="text-align: right;">
                     <div style="font-size: 0.85rem; color: var(--text-secondary);">Valor total pago / a pagar</div>
@@ -140,7 +141,7 @@
 
             <% if (r.getObservacoes() != null && !r.getObservacoes().isEmpty()) { %>
             <div style="margin-top: 1.5rem; padding: 1rem; background: var(--bg-surface); border-radius: var(--radius-sm); font-size: 0.85rem; color: var(--text-secondary);">
-                <strong>Observações:</strong> <%= r.getObservacoes() %>
+                <strong>Observações:</strong> <%= Html.esc(r.getObservacoes()) %>
             </div>
             <% } %>
 

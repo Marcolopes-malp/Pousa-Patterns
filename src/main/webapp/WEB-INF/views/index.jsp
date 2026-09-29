@@ -3,6 +3,7 @@
 <%@page import="model.Hospede"%>
 <%@page import="model.Acomodacao"%>
 <%@page import="dao.AcomodacaoDAO"%>
+<%@page import="util.Html"%>
 <%
     Hospede usuario = (Hospede) session.getAttribute("usuarioLogado");
     AcomodacaoDAO acomodacaoDAO = new AcomodacaoDAO();
@@ -34,8 +35,8 @@
                         <a href="controller.do?btnop=MinhasReservas" class="nav-link">Minhas Reservas</a>
                     <% } %>
                     <div class="user-pill">
-                        <div class="user-avatar"><%= usuario.getNomeCompleto().substring(0, 1).toUpperCase() %></div>
-                        <span><%= usuario.getNomeCompleto().split(" ")[0] %></span>
+                        <div class="user-avatar"><%= Html.esc(usuario.getNomeCompleto().substring(0, 1).toUpperCase()) %></div>
+                        <span><%= Html.esc(usuario.getNomeCompleto().split(" ")[0]) %></span>
                     </div>
                     <form action="controller.do" method="POST" style="display:inline;">
                         <input type="hidden" name="btnop" value="LogoutCliente">
@@ -61,7 +62,7 @@
                     <span>Acomodação</span>
                     <select name="acomodacaoId">
                         <% for (Acomodacao a : acomodacoes) { %>
-                            <option value="<%= a.getId() %>"><%= a.getNome() %></option>
+                            <option value="<%= a.getId() %>"><%= Html.esc(a.getNome()) %></option>
                         <% } %>
                     </select>
                 </div>
@@ -91,7 +92,7 @@
                 <% for (Acomodacao a : acomodacoes) { %>
                 <div class="acc-card">
                     <div class="acc-image-wrapper">
-                        <img src="<%= a.getImagemUrl() %>" alt="<%= a.getNome() %>" class="acc-image" loading="lazy">
+                        <img src="<%= Html.esc(a.getImagemUrl()) %>" alt="<%= Html.esc(a.getNome()) %>" class="acc-image" loading="lazy">
                         <div class="demand-pill">
                             <span class="demand-dot"></span>
                             <% if (a.getVagasRestantes() <= 2) { %>
@@ -104,11 +105,11 @@
 
                     <div class="acc-content">
                         <div class="acc-header">
-                            <h3 class="acc-title"><%= a.getNome() %></h3>
+                            <h3 class="acc-title"><%= Html.esc(a.getNome()) %></h3>
                             <div class="acc-rating">★ <%= a.getAvaliacao() %> (<%= a.getTotalAvaliacoes() %>)</div>
                         </div>
-                        <div class="acc-subtitle">Até <%= a.getCapacidadePessoas() %> hóspedes • <%= a.getTipo() %></div>
-                        <div class="acc-amenities"><%= a.getComodidades() %></div>
+                        <div class="acc-subtitle">Até <%= a.getCapacidadePessoas() %> hóspedes • <%= Html.esc(a.getTipo()) %></div>
+                        <div class="acc-amenities"><%= Html.esc(a.getComodidades()) %></div>
 
                         <div class="acc-price-row">
                             <div class="acc-price">

@@ -2,6 +2,7 @@
 <%@page import="java.util.List"%>
 <%@page import="model.Reserva"%>
 <%@page import="dao.ReservaDAO"%>
+<%@page import="util.Html"%>
 <%
     ReservaDAO dao = new ReservaDAO();
     List<Reserva> lista = dao.consultarTodos();
@@ -104,20 +105,20 @@
                             %>
                             <tr>
                                 <td>
-                                    <strong><%= r.getCodigoLocalizador() %></strong>
+                                    <strong><%= Html.esc(r.getCodigoLocalizador()) %></strong>
                                     <div style="font-size: 0.75rem; color: var(--text-muted);">ID #<%= r.getId() %></div>
+                                 </td>
+                                <td>
+                                    <strong><%= Html.esc(nomeHospede) %></strong>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary);"><%= Html.esc((r.getHospede() != null) ? r.getHospede().getTelefone() : "") %></div>
                                 </td>
                                 <td>
-                                    <strong><%= nomeHospede %></strong>
-                                    <div style="font-size: 0.75rem; color: var(--text-secondary);"><%= (r.getHospede() != null) ? r.getHospede().getTelefone() : "" %></div>
-                                </td>
-                                <td>
-                                    <div><%= r.getDataCheckIn() %> &rarr; <%= r.getDataCheckOut() %></div>
+                                    <div><%= Html.esc(r.getDataCheckIn()) %> &rarr; <%= Html.esc(r.getDataCheckOut()) %></div>
                                     <div style="font-size: 0.75rem; color: var(--text-muted);"><%= r.getQuantidadeHospedes() %> hóspedes</div>
                                 </td>
-                                <td><%= r.getTipoQuarto() %></td>
+                                <td><%= Html.esc(r.getTipoQuarto()) %></td>
                                 <td><strong>R$ <%= String.format("%.2f", r.getValorTotal()) %></strong></td>
-                                <td><span class="status-badge <%= r.getStatus() %>"><%= r.getStatus() %></span></td>
+                                <td><span class="status-badge <%= Html.esc(r.getStatus()) %>"><%= Html.esc(r.getStatus()) %></span></td>
                                 <td style="text-align: right; white-space: nowrap;">
                                     <a href="controller.do?btnop=ConsultaById&id=<%= r.getId() %>" class="btn-secondary-action" style="padding: 0.35rem 0.7rem; font-size: 0.8rem;">Ver</a>
                                     <a href="controller.do?btnop=Edita&id=<%= r.getId() %>" class="btn-secondary-action" style="padding: 0.35rem 0.7rem; font-size: 0.8rem;">Editar</a>

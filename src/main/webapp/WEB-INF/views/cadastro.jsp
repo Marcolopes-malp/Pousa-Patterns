@@ -1,4 +1,5 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page import="util.Html"%>
 <%
     String redirect = request.getParameter("redirect");
     if (redirect == null) redirect = "";
@@ -35,15 +36,15 @@
             </p>
 
             <% if (msg != null) { %>
-                <div class="message-bar <%= tipoMsg != null ? tipoMsg : "danger" %>">
-                    <%= msg %>
+                <div class="message-bar <%= tipoMsg != null ? Html.esc(tipoMsg) : "danger" %>">
+                    <%= Html.esc(msg) %>
                 </div>
             <% } %>
 
             <form action="controller.do" method="POST">
                 <input type="hidden" name="btnop" value="CadastraCliente">
                 <input type="hidden" name="csrfToken" value="<%= session.getAttribute("csrfToken") %>">
-                <input type="hidden" name="redirect" value="<%= redirect %>">
+                <input type="hidden" name="redirect" value="<%= Html.esc(redirect) %>">
 
                 <div class="form-group" style="margin-bottom: 0.9rem;">
                     <label for="txtNome">Nome completo</label>
@@ -82,7 +83,7 @@
             </form>
 
             <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-light); font-size: 0.85rem; text-align: center; color: var(--text-secondary);">
-                Já tem cadastro? <a href="login.jsp?redirect=<%= redirect %>" style="color: var(--text-primary); font-weight: 700; text-decoration: underline;">Faça login</a>
+                Já tem cadastro? <a href="controller.do?btnop=Login&redirect=<%= Html.esc(redirect) %>" style="color: var(--text-primary); font-weight: 700; text-decoration: underline;">Faça login</a>
             </div>
         </div>
     </div>
