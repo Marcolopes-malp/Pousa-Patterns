@@ -135,6 +135,7 @@
 
         <form action="controller.do" method="POST" id="formReserva" class="checkout-layout">
             <input type="hidden" name="btnop" value="Cadastra">
+            <input type="hidden" name="csrfToken" value="<%= session.getAttribute("csrfToken") %>">
             <input type="hidden" name="acomodacaoId" value="<%= acomodacao.getId() %>">
             <input type="hidden" name="txtTipoQuarto" value="<%= acomodacao.getNome() %>">
             <input type="hidden" id="txtValorDiaria" name="txtValorDiaria" value="<%= acomodacao.getValorDiaria() %>">

@@ -13,7 +13,7 @@ import util.FabricaConexao;
 public class HospedeDAO {
 
     public int cadastrar(Hospede hospede) throws ClassNotFoundException, SQLException {
-        String sql = "INSERT INTO hospedes (nome_completo, cpf, email, telefone, cidade_origem, senha) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO hospedes (nome_completo, cpf, email, telefone, cidade_origem, senha, perfil) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (Connection con = FabricaConexao.getConexao();
              PreparedStatement comando = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             comando.setString(1, hospede.getNomeCompleto());
@@ -22,6 +22,7 @@ public class HospedeDAO {
             comando.setString(4, hospede.getTelefone());
             comando.setString(5, hospede.getCidadeOrigem());
             comando.setString(6, hospede.getSenha() != null ? hospede.getSenha() : "123456");
+            comando.setString(7, hospede.getPerfil() != null ? hospede.getPerfil() : "CLIENTE");
             comando.executeUpdate();
 
             try (ResultSet rs = comando.getGeneratedKeys()) {
@@ -125,6 +126,12 @@ public class HospedeDAO {
         try {
             h.setSenha(rs.getString("senha"));
         } catch (SQLException ignored) {}
+        try {
+            String p = rs.getString("perfil");
+            h.setPerfil(p != null ? p : "CLIENTE");
+        } catch (SQLException ignored) {
+            h.setPerfil("CLIENTE");
+        }
         return h;
     }
 }

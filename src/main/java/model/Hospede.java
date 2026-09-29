@@ -16,11 +16,12 @@ public class Hospede implements Serializable {
     private String telefone;
     private String cidadeOrigem;
     private String senha;
+    private String perfil = "CLIENTE";
 
     public Hospede() {
     }
 
-    public Hospede(int id, String nomeCompleto, String cpf, String email, String telefone, String cidadeOrigem, String senha) {
+    public Hospede(int id, String nomeCompleto, String cpf, String email, String telefone, String cidadeOrigem, String senha, String perfil) {
         this.id = id;
         this.nomeCompleto = nomeCompleto;
         this.cpf = cpf;
@@ -28,6 +29,11 @@ public class Hospede implements Serializable {
         this.telefone = telefone;
         this.cidadeOrigem = cidadeOrigem;
         this.senha = senha;
+        this.perfil = (perfil != null && !perfil.trim().isEmpty()) ? perfil : "CLIENTE";
+    }
+
+    public Hospede(int id, String nomeCompleto, String cpf, String email, String telefone, String cidadeOrigem, String senha) {
+        this(id, nomeCompleto, cpf, email, telefone, cidadeOrigem, senha, "CLIENTE");
     }
 
     public Hospede(int id, String nomeCompleto, String cpf, String email, String telefone, String cidadeOrigem) {
@@ -101,6 +107,18 @@ public class Hospede implements Serializable {
 
     public void setSenha(String senha) {
         this.senha = senha;
+    }
+
+    public String getPerfil() {
+        return perfil != null ? perfil : "CLIENTE";
+    }
+
+    public void setPerfil(String perfil) {
+        this.perfil = (perfil != null && !perfil.trim().isEmpty()) ? perfil : "CLIENTE";
+    }
+
+    public boolean isRecepcao() {
+        return "RECEPCAO".equalsIgnoreCase(this.perfil);
     }
 
     @Override

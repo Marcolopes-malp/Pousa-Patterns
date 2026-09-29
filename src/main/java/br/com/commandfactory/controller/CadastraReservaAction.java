@@ -16,7 +16,19 @@ public class CadastraReservaAction implements ICommand {
     @Override
     public String executar(HttpServletRequest request, HttpServletResponse response) throws Exception {
         try {
+            if (!"POST".equalsIgnoreCase(request.getMethod())) {
+                response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "Ação permitida exclusivamente via POST.");
+                return null;
+            }
+
             HttpSession session = request.getSession();
+            String sessionToken = (String) session.getAttribute("csrfToken");
+            String requestToken = request.getParameter("csrfToken");
+            if (sessionToken == null || !sessionToken.equals(requestToken)) {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Token CSRF inválido ou expirado.");
+                return null;
+            }
+
             Hospede hospede = (Hospede) session.getAttribute("usuarioLogado");
 
             if (hospede == null) {

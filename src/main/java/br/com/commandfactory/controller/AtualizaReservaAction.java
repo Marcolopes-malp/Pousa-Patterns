@@ -3,6 +3,7 @@ package br.com.commandfactory.controller;
 import dao.ReservaDAO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import model.Hospede;
 import model.Reserva;
 import model.ReservaBuilder;
@@ -15,6 +16,30 @@ public class AtualizaReservaAction implements ICommand {
     @Override
     public String executar(HttpServletRequest request, HttpServletResponse response) throws Exception {
         try {
+            if (!"POST".equalsIgnoreCase(request.getMethod())) {
+                response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "Ação de atualização permitida exclusivamente via POST.");
+                return null;
+            }
+
+            HttpSession session = request.getSession();
+            String sessionToken = (String) session.getAttribute("csrfToken");
+            String requestToken = request.getParameter("csrfToken");
+            if (sessionToken == null || !sessionToken.equals(requestToken)) {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Token CSRF inválido ou expirado.");
+                return null;
+            }
+
+            Hospede usuario = (Hospede) session.getAttribute("usuarioLogado");
+            if (usuario == null) {
+                response.sendRedirect("controller.do?btnop=Login");
+                return null;
+            }
+            if (!usuario.isRecepcao()) {
+                request.setAttribute("msg", "Acesso negado: a atualização de reservas é restrita à equipe de recepção.");
+                request.setAttribute("tipoMsg", "danger");
+                return "resultado.jsp";
+            }
+
             int id = Integer.parseInt(request.getParameter("txtId"));
             int hospedeId = Integer.parseInt(request.getParameter("txtHospedeId"));
             String codigo = request.getParameter("txtCodigo");

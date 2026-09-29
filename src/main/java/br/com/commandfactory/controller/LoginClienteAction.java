@@ -25,7 +25,11 @@ public class LoginClienteAction implements ICommand {
                 response.sendRedirect(redirect);
                 return null;
             }
-            response.sendRedirect("controller.do?btnop=MinhasReservas");
+            if (hospede.isRecepcao()) {
+                response.sendRedirect("controller.do?btnop=Admin");
+            } else {
+                response.sendRedirect("controller.do?btnop=MinhasReservas");
+            }
             return null;
         }
 

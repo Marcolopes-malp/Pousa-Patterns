@@ -60,7 +60,7 @@
             </a>
             <div class="nav-right">
                 <a href="controller.do?btnop=ConsultaTodos" class="nav-link">&larr; Visão do Cliente</a>
-                <a href="formCadastro.jsp" class="btn-primary-action" style="padding: 0.5rem 1rem; font-size: 0.85rem;">+ Nova Reserva Manual</a>
+                <a href="controller.do?btnop=CadastroManual" class="btn-primary-action" style="padding: 0.5rem 1rem; font-size: 0.85rem;">+ Nova Reserva Manual</a>
             </div>
         </div>
     </header>
@@ -121,8 +121,18 @@
                                 <td style="text-align: right; white-space: nowrap;">
                                     <a href="controller.do?btnop=ConsultaById&id=<%= r.getId() %>" class="btn-secondary-action" style="padding: 0.35rem 0.7rem; font-size: 0.8rem;">Ver</a>
                                     <a href="controller.do?btnop=Edita&id=<%= r.getId() %>" class="btn-secondary-action" style="padding: 0.35rem 0.7rem; font-size: 0.8rem;">Editar</a>
-                                    <a href="controller.do?btnop=ProcessarCheckInAutomatico&id=<%= r.getId() %>" class="btn-primary-action" style="padding: 0.35rem 0.7rem; font-size: 0.8rem; background: #059669;">Check-in</a>
-                                    <a href="controller.do?btnop=Deleta&id=<%= r.getId() %>" class="btn-secondary-action" style="padding: 0.35rem 0.7rem; font-size: 0.8rem; color: #C5221F;" onclick="return confirm('Confirma a exclusão desta reserva?')">Excluir</a>
+                                    <form method="POST" action="controller.do" style="display:inline;">
+                                        <input type="hidden" name="btnop" value="ProcessarCheckInAutomatico">
+                                        <input type="hidden" name="id" value="<%= r.getId() %>">
+                                        <input type="hidden" name="csrfToken" value="<%= session.getAttribute("csrfToken") %>">
+                                        <button type="submit" class="btn-primary-action" style="padding: 0.35rem 0.7rem; font-size: 0.8rem; background: #059669; border:none; cursor:pointer;">Check-in</button>
+                                    </form>
+                                    <form method="POST" action="controller.do" style="display:inline;" onsubmit="return confirm('Confirma a exclusão desta reserva?')">
+                                        <input type="hidden" name="btnop" value="Deleta">
+                                        <input type="hidden" name="id" value="<%= r.getId() %>">
+                                        <input type="hidden" name="csrfToken" value="<%= session.getAttribute("csrfToken") %>">
+                                        <button type="submit" class="btn-secondary-action" style="padding: 0.35rem 0.7rem; font-size: 0.8rem; color: #C5221F; border:none; cursor:pointer;">Excluir</button>
+                                    </form>
                                 </td>
                             </tr>
                             <% } %>

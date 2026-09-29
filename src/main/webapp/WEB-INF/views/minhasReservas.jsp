@@ -33,7 +33,11 @@
                     <div class="user-avatar"><%= usuario.getNomeCompleto().substring(0, 1).toUpperCase() %></div>
                     <span><%= usuario.getNomeCompleto().split(" ")[0] %></span>
                 </div>
-                <a href="controller.do?btnop=LogoutCliente" class="nav-link" style="color: var(--text-secondary); font-size: 0.85rem;">Sair</a>
+                <form action="controller.do" method="POST" style="display:inline;">
+                    <input type="hidden" name="btnop" value="LogoutCliente">
+                    <input type="hidden" name="csrfToken" value="<%= session.getAttribute("csrfToken") %>">
+                    <button type="submit" class="nav-link" style="background:none; border:none; color: var(--text-secondary); font-size: 0.85rem; cursor:pointer;">Sair</button>
+                </form>
             </div>
         </div>
     </header>
@@ -90,9 +94,14 @@
                                 Ver comprovante
                             </a>
                             <% if (!"CHECKIN_ATIVO".equalsIgnoreCase(r.getStatus()) && !"CANCELADA".equalsIgnoreCase(r.getStatus())) { %>
-                                <a href="controller.do?btnop=ProcessarCheckInAutomatico&id=<%= r.getId() %>" class="btn-primary-action" style="padding: 0.5rem; font-size: 0.85rem; text-align: center; background: #059669;">
-                                    Fazer check-in online
-                                </a>
+                                <form method="POST" action="controller.do" style="width: 100%;">
+                                    <input type="hidden" name="btnop" value="ProcessarCheckInAutomatico">
+                                    <input type="hidden" name="id" value="<%= r.getId() %>">
+                                    <input type="hidden" name="csrfToken" value="<%= session.getAttribute("csrfToken") %>">
+                                    <button type="submit" class="btn-primary-action" style="width: 100%; padding: 0.5rem; font-size: 0.85rem; text-align: center; background: #059669; border:none; cursor:pointer;">
+                                        Fazer check-in online
+                                    </button>
+                                </form>
                             <% } %>
                         </div>
                     </div>

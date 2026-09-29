@@ -31,6 +31,7 @@
 
             <form action="controller.do" method="POST">
                 <input type="hidden" name="btnop" value="Cadastra">
+                <input type="hidden" name="csrfToken" value="<%= session.getAttribute("csrfToken") %>">
 
                 <h3 class="section-title">Dados do hóspede titular</h3>
                 <div class="form-row">

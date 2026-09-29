@@ -47,6 +47,7 @@
 
             <form action="controller.do" method="POST">
                 <input type="hidden" name="btnop" value="Atualiza">
+                <input type="hidden" name="csrfToken" value="<%= session.getAttribute("csrfToken") %>">
                 <input type="hidden" name="txtId" value="<%= r.getId() %>">
                 <input type="hidden" name="txtHospedeId" value="<%= h.getId() %>">
                 <input type="hidden" name="txtCodigo" value="<%= r.getCodigoLocalizador() %>">

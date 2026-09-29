@@ -64,10 +64,15 @@
                     </p>
                 </div>
                 <div style="display: flex; gap: 0.5rem;">
-                    <% if (!"CHECKIN_ATIVO".equalsIgnoreCase(r.getStatus())) { %>
-                        <a href="controller.do?btnop=ProcessarCheckInAutomatico&id=<%= r.getId() %>" class="btn-primary-action" style="background: #059669; padding: 0.55rem 1rem; font-size: 0.85rem;">
-                            Fazer check-in agora
-                        </a>
+                    <% if (!"CHECKIN_ATIVO".equalsIgnoreCase(r.getStatus()) && !"CANCELADA".equalsIgnoreCase(r.getStatus())) { %>
+                        <form method="POST" action="controller.do" style="display:inline;">
+                            <input type="hidden" name="btnop" value="ProcessarCheckInAutomatico">
+                            <input type="hidden" name="id" value="<%= r.getId() %>">
+                            <input type="hidden" name="csrfToken" value="<%= session.getAttribute("csrfToken") %>">
+                            <button type="submit" class="btn-primary-action" style="background: #059669; padding: 0.55rem 1rem; font-size: 0.85rem; border:none; cursor:pointer;">
+                                Fazer check-in agora
+                            </button>
+                        </form>
                     <% } %>
                     <button onclick="window.print()" class="btn-secondary-action" style="padding: 0.55rem 1rem; font-size: 0.85rem;">
                         Imprimir comprovante
