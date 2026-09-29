@@ -65,7 +65,7 @@
                     </p>
                 </div>
                 <div style="display: flex; gap: 0.5rem;">
-                    <% if (!"CHECKIN_ATIVO".equalsIgnoreCase(r.getStatus()) && !"CANCELADA".equalsIgnoreCase(r.getStatus())) { %>
+                    <% if ("CONFIRMADA".equalsIgnoreCase(r.getStatus())) { %>
                         <form method="POST" action="controller.do" style="display:inline;">
                             <input type="hidden" name="btnop" value="ProcessarCheckInAutomatico">
                             <input type="hidden" name="id" value="<%= r.getId() %>">

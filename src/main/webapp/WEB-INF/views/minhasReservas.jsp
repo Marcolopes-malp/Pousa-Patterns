@@ -94,7 +94,7 @@
                             <a href="controller.do?btnop=ConsultaById&id=<%= r.getId() %>" class="btn-secondary-action" style="padding: 0.5rem; font-size: 0.85rem; text-align: center;">
                                 Ver comprovante
                             </a>
-                            <% if (!"CHECKIN_ATIVO".equalsIgnoreCase(r.getStatus()) && !"CANCELADA".equalsIgnoreCase(r.getStatus())) { %>
+                            <% if ("CONFIRMADA".equalsIgnoreCase(r.getStatus())) { %>
                                 <form method="POST" action="controller.do" style="width: 100%;">
                                     <input type="hidden" name="btnop" value="ProcessarCheckInAutomatico">
                                     <input type="hidden" name="id" value="<%= r.getId() %>">

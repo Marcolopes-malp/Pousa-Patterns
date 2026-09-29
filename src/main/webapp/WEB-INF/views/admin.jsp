@@ -122,12 +122,14 @@
                                 <td style="text-align: right; white-space: nowrap;">
                                     <a href="controller.do?btnop=ConsultaById&id=<%= r.getId() %>" class="btn-secondary-action" style="padding: 0.35rem 0.7rem; font-size: 0.8rem;">Ver</a>
                                     <a href="controller.do?btnop=Edita&id=<%= r.getId() %>" class="btn-secondary-action" style="padding: 0.35rem 0.7rem; font-size: 0.8rem;">Editar</a>
-                                    <form method="POST" action="controller.do" style="display:inline;">
-                                        <input type="hidden" name="btnop" value="ProcessarCheckInAutomatico">
-                                        <input type="hidden" name="id" value="<%= r.getId() %>">
-                                        <input type="hidden" name="csrfToken" value="<%= session.getAttribute("csrfToken") %>">
-                                        <button type="submit" class="btn-primary-action" style="padding: 0.35rem 0.7rem; font-size: 0.8rem; background: #059669; border:none; cursor:pointer;">Check-in</button>
-                                    </form>
+                                    <% if ("CONFIRMADA".equalsIgnoreCase(r.getStatus())) { %>
+                                        <form method="POST" action="controller.do" style="display:inline;">
+                                            <input type="hidden" name="btnop" value="ProcessarCheckInAutomatico">
+                                            <input type="hidden" name="id" value="<%= r.getId() %>">
+                                            <input type="hidden" name="csrfToken" value="<%= session.getAttribute("csrfToken") %>">
+                                            <button type="submit" class="btn-primary-action" style="padding: 0.35rem 0.7rem; font-size: 0.8rem; background: #059669; border:none; cursor:pointer;">Check-in</button>
+                                        </form>
+                                    <% } %>
                                     <form method="POST" action="controller.do" style="display:inline;" onsubmit="return confirm('Confirma a exclusão desta reserva?')">
                                         <input type="hidden" name="btnop" value="Deleta">
                                         <input type="hidden" name="id" value="<%= r.getId() %>">
