@@ -71,6 +71,14 @@
             <artifactId>tomcat-util-scan</artifactId>
             <version>${tomcat.version}</version>
         </dependency>
+
+        <!-- JUnit 5 para Testes Unitários de Regras de Negócio e Tarifação (B1) -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.10.2</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

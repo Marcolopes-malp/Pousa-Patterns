@@ -14,6 +14,17 @@ public abstract class ServicoFactory {
      */
     public abstract ItemServico criarServico();
 
+    /**
+     * Sobrecarga conveniente que cria o serviço e define a quantidade contratada.
+     */
+    public ItemServico criarServico(int quantidade) {
+        ItemServico servico = criarServico();
+        if (quantidade > 0) {
+            servico.setQuantidade(quantidade);
+        }
+        return servico;
+    }
+
     public static ServicoFactory obterFabrica(String tipo) {
         if (tipo == null) {
             return new CafeManhaFactory();

@@ -375,12 +375,12 @@
                             <span id="valorServicos">R$ 0,00</span>
                         </div>
                         <div class="price-item">
-                            <span>Taxa de serviço da pousada</span>
-                            <span style="color: var(--success-text); font-weight: 700;">Grátis</span>
+                            <span>Taxa de preservação ambiental (3%)</span>
+                            <span id="valorTaxaAmbiental" style="font-weight: 600;">R$ 0,00</span>
                         </div>
                         <div class="price-total">
                             <span>Total a pagar</span>
-                            <span id="totalFinal">R$ 2.137,50</span>
+                            <span id="totalFinal">R$ 0,00</span>
                         </div>
                     </div>
 
@@ -459,7 +459,9 @@
             var totalServicos = 0;
             if (document.getElementById("chkCafe").checked) totalServicos += (65 * noites);
             if (document.getElementById("chkTransfer").checked) totalServicos += 180;
-            if (document.getElementById("chkPasseio").checked) totalServicos += (120 * parseInt(document.getElementById("txtQtdHospedes").value || 2));
+            var qtdHospedesElem = document.getElementById("txtQtdHospedes");
+            var qtdHospedes = parseInt(qtdHospedesElem ? qtdHospedesElem.value : 2) || 1;
+            if (document.getElementById("chkPasseio").checked) totalServicos += (120 * qtdHospedes);
             if (document.getElementById("chkSpa").checked) totalServicos += 150;
 
             var rowServ = document.getElementById("rowServicos");
@@ -470,20 +472,29 @@
                 rowServ.style.display = "none";
             }
 
-            var subtotal = subtotalDiarias - descontoEstadia + totalServicos;
+            var subtotalComDesconto = subtotalDiarias - descontoEstadia;
 
-            // Desconto PIX 5%
+            // Taxa de Preservação Ambiental (3% sobre diárias com desconto + serviços)
+            var taxaAmbiental = (subtotalComDesconto + totalServicos) * 0.03;
+            var elemTaxa = document.getElementById("valorTaxaAmbiental");
+            if (elemTaxa) {
+                elemTaxa.innerText = "R$ " + taxaAmbiental.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+            }
+
+            var baseComTaxas = subtotalComDesconto + totalServicos + taxaAmbiental;
+
+            // Desconto PIX 5% sobre a base com taxas
             var descontoPix = 0;
             var rowPix = document.getElementById("rowDescontoPix");
             if (formaPagamentoAtual === "PIX") {
-                descontoPix = subtotal * 0.05;
+                descontoPix = baseComTaxas * 0.05;
                 rowPix.style.display = "flex";
                 document.getElementById("valorDescontoPix").innerText = "- R$ " + descontoPix.toLocaleString('pt-BR', {minimumFractionDigits: 2});
             } else {
                 rowPix.style.display = "none";
             }
 
-            var totalFinal = subtotal - descontoPix;
+            var totalFinal = baseComTaxas - descontoPix;
             document.getElementById("totalFinal").innerText = "R$ " + totalFinal.toLocaleString('pt-BR', {minimumFractionDigits: 2});
         }
 

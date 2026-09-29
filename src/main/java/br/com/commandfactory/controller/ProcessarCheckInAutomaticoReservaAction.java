@@ -71,52 +71,35 @@ public class ProcessarCheckInAutomaticoReservaAction implements ICommand {
                 totalDias = 1;
             }
 
-            double subtotalDiarias = totalDias * reserva.getValorDiaria();
+            // B1: Aplicação do Padrão STRATEGY para garantir cálculo unificado entre reserva e check-in
+            model.strategy.CalculadoraPreco calculadora = new model.strategy.CalculadoraPreco();
+            model.strategy.ResultadoCalculoPreco calculo = calculadora.calcular(
+                    totalDias,
+                    reserva.getValorDiaria(),
+                    reserva.getServicos(),
+                    reserva.getFormaPagamento()
+            );
 
-            // 2. Regra de Desconto Automatizado (Long-Stay)
-            double percentualDesconto = 0.0;
-            if (totalDias >= 7) {
-                percentualDesconto = 0.15; // 15%
-            } else if (totalDias >= 4) {
-                percentualDesconto = 0.10; // 10%
-            }
-            double valorDesconto = subtotalDiarias * percentualDesconto;
-            double subtotalComDesconto = subtotalDiarias - valorDesconto;
-
-            // 3. Totalização automatizada dos Serviços Adicionais (1:N)
-            double totalServicos = 0.0;
-            if (reserva.getServicos() != null) {
-                for (ItemServico s : reserva.getServicos()) {
-                    totalServicos += s.getSubtotal();
-                }
-            }
-
-            // 4. Taxa de Preservação Ambiental (3%)
-            double taxaAmbiental = (subtotalComDesconto + totalServicos) * 0.03;
-
-            // Total Consolidado
-            double novoTotal = subtotalComDesconto + totalServicos + taxaAmbiental;
-
-            // 5. Geração do PIN Smart-Lock com gerador criptograficamente seguro (CSPRNG)
+            // 2. Geração do PIN Smart-Lock com gerador criptograficamente seguro (CSPRNG)
             int pin = util.Seguranca.gerarPinFechaduraSeguro();
 
-            // 6. Atualização de status e observações
+            // 3. Atualização de status e observações (preservando o valor total contratado)
             reserva.setStatus("CHECKIN_ATIVO");
-            reserva.setValorTotal(Math.round(novoTotal * 100.0) / 100.0);
             String novaObs = (reserva.getObservacoes() != null ? reserva.getObservacoes() : "")
                     + " [Check-In Automatizado realizado. PIN da fechadura digital: " + pin
-                    + " | Desconto aplicado: " + (percentualDesconto * 100) + "%].";
+                    + " | Desconto estadia: " + (int)(calculo.getPercentualDescontoEstadia() * 100) + "%].";
             reserva.setObservacoes(novaObs);
 
             // Persiste no banco de dados via DAO
             dao.atualizar(reserva);
 
             request.setAttribute("reserva", reserva);
-            request.setAttribute("totalDias", totalDias);
-            request.setAttribute("subtotalDiarias", subtotalDiarias);
-            request.setAttribute("valorDesconto", valorDesconto);
-            request.setAttribute("totalServicos", totalServicos);
-            request.setAttribute("taxaAmbiental", taxaAmbiental);
+            request.setAttribute("totalDias", calculo.getNoites());
+            request.setAttribute("subtotalDiarias", calculo.getSubtotalDiarias());
+            request.setAttribute("valorDesconto", calculo.getValorDescontoEstadia());
+            request.setAttribute("totalServicos", calculo.getTotalServicos());
+            request.setAttribute("taxaAmbiental", calculo.getTaxaAmbiental());
+            request.setAttribute("valorDescontoPix", calculo.getValorDescontoPix());
             request.setAttribute("pinAcesso", pin);
             request.setAttribute("msg", "Processo de Check-In Automatizado concluído com sucesso!");
             request.setAttribute("tipoMsg", "success");

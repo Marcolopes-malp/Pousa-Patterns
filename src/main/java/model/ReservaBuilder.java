@@ -143,7 +143,7 @@ public class ReservaBuilder {
             this.codigoLocalizador = "POUS-" + sufixo;
         }
 
-        // Calcula total se não foi fixado
+        // Calcula total se não foi fixado usando a estratégia unificada de precificação
         if (this.valorTotal <= 0.0) {
             try {
                 LocalDate dtIn = LocalDate.parse(this.dataCheckIn);
@@ -152,12 +152,9 @@ public class ReservaBuilder {
                 if (dias <= 0) {
                     dias = 1;
                 }
-                double totalDiarias = dias * this.valorDiaria;
-                double totalServicos = 0.0;
-                for (ItemServico s : this.servicos) {
-                    totalServicos += s.getSubtotal();
-                }
-                this.valorTotal = totalDiarias + totalServicos;
+                model.strategy.CalculadoraPreco calc = new model.strategy.CalculadoraPreco();
+                model.strategy.ResultadoCalculoPreco res = calc.calcular(dias, this.valorDiaria, this.servicos, this.formaPagamento);
+                this.valorTotal = res.getValorTotalFinal();
             } catch (Exception e) {
                 this.valorTotal = this.valorDiaria;
             }

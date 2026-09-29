@@ -173,7 +173,7 @@ public class CadastraReservaAction implements ICommand {
             double totalServicos = 0.0;
 
             if (request.getParameter("chkCafe") != null) {
-                ItemServico cafe = ServicoFactory.obterFabrica("cafe").criarServico();
+                ItemServico cafe = ServicoFactory.obterFabrica("cafe").criarServico((int) numDiarias);
                 servicos.add(cafe);
                 totalServicos += cafe.getSubtotal();
             }
@@ -183,7 +183,7 @@ public class CadastraReservaAction implements ICommand {
                 totalServicos += transfer.getSubtotal();
             }
             if (request.getParameter("chkPasseio") != null) {
-                ItemServico passeio = ServicoFactory.obterFabrica("passeio").criarServico();
+                ItemServico passeio = ServicoFactory.obterFabrica("passeio").criarServico(qtdHospedes);
                 servicos.add(passeio);
                 totalServicos += passeio.getSubtotal();
             }
@@ -193,8 +193,10 @@ public class CadastraReservaAction implements ICommand {
                 totalServicos += spa.getSubtotal();
             }
 
-            // Recalcula o valor total exclusivamente no servidor (diárias oficiais + serviços)
-            double valorTotalCalculado = (numDiarias * valorDiaria) + totalServicos;
+            // B1: Recalcula o valor total unificado via Padrão STRATEGY (diárias, desconto long-stay, serviços, taxa e desconto PIX)
+            model.strategy.CalculadoraPreco calculadora = new model.strategy.CalculadoraPreco();
+            model.strategy.ResultadoCalculoPreco calculo = calculadora.calcular(numDiarias, valorDiaria, servicos, formaPagamento);
+            double valorTotalCalculado = calculo.getValorTotalFinal();
 
             ReservaBuilder builder = ReservaBuilder.novo()
                     .comHospede(hospede)
