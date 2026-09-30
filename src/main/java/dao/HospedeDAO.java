@@ -13,9 +13,14 @@ import util.FabricaConexao;
 public class HospedeDAO {
 
     public int cadastrar(Hospede hospede) throws ClassNotFoundException, SQLException {
+        try (Connection con = FabricaConexao.getConexao()) {
+            return cadastrar(con, hospede);
+        }
+    }
+
+    public int cadastrar(Connection con, Hospede hospede) throws SQLException {
         String sql = "INSERT INTO hospedes (nome_completo, cpf, email, telefone, cidade_origem, senha, perfil) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        try (Connection con = FabricaConexao.getConexao();
-             PreparedStatement comando = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement comando = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             comando.setString(1, hospede.getNomeCompleto());
             comando.setString(2, hospede.getCpf());
             comando.setString(3, hospede.getEmail());
@@ -88,9 +93,14 @@ public class HospedeDAO {
     }
 
     public void atualizar(Hospede hospede) throws ClassNotFoundException, SQLException {
+        try (Connection con = FabricaConexao.getConexao()) {
+            atualizar(con, hospede);
+        }
+    }
+
+    public void atualizar(Connection con, Hospede hospede) throws SQLException {
         String sql = "UPDATE hospedes SET nome_completo = ?, cpf = ?, email = ?, telefone = ?, cidade_origem = ? WHERE id = ?";
-        try (Connection con = FabricaConexao.getConexao();
-             PreparedStatement comando = con.prepareStatement(sql)) {
+        try (PreparedStatement comando = con.prepareStatement(sql)) {
             comando.setString(1, hospede.getNomeCompleto());
             comando.setString(2, hospede.getCpf());
             comando.setString(3, hospede.getEmail());
