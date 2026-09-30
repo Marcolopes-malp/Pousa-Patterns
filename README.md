@@ -2,7 +2,7 @@
 
 # 🏨 Pousada Paradiso • Sistema de Gestão de Reservas
 
-### ⚡ Plataforma Web com Padrões de Projeto (GoF) e Arquitetura em Camadas
+### ⚡ Plataforma Web com Padrões de Projeto (GoF), Arquitetura em Camadas e Segurança Defensiva
 
 [![Java 17](https://img.shields.io/badge/Java-17-7928CA?style=for-the-badge&logo=openjdk&logoColor=white)](https://www.oracle.com/java/)
 [![Apache Tomcat](https://img.shields.io/badge/Tomcat-9.0.98-9333EA?style=for-the-badge&logo=apachetomcat&logoColor=white)](https://tomcat.apache.org/)
@@ -15,6 +15,8 @@
 <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,24,35,46&height=180&section=header&text=Pousada%20Paradiso&fontSize=42&fontColor=ffffff&animation=fadeIn&fontAlignY=38&desc=Sistema%20de%20Gerenciamento%20de%20Reservas%20%7C%20Padrões%20de%20Projeto%20UMC&descFontSize=16&descAlignY=58" width="100%" alt="Header Banner" />
 
 </div>
+
+> 📚 **Material de Apresentação:** Consulte o [GUIA_APRESENTACAO.md](GUIA_APRESENTACAO.md) para o roteiro completo de apresentação para a banca acadêmica, resumo dos padrões GoF, scripts de explicação e FAQ de defesa.
 
 ---
 
@@ -30,6 +32,7 @@ O ecossistema implementa regras de negócio para tarifação dinâmica, controle
        │                   Strategy, State                      │
        │   🟣 Arquitetura: MVC + Front Controller, Service, DAO │
        │   🟣 Persistência: JDBC Transacional ACID (H2 / MySQL) │
+       │   🟣 Segurança: PBKDF2 (Salt), CSRF, XSS, SecureRandom │
        └────────────────────────────────────────────────────────┘
 ```
 
@@ -54,8 +57,8 @@ O projeto separa claramente os padrões de projeto **GoF (Gang of Four)** dos pa
 | Padrão | Tipo GoF | Implementação no Projeto | Propósito |
 | :--- | :--- | :--- | :--- |
 | **Command** | Comportamental | Interface `ICommand` e subclasses (`CadastraReservaAction`, `AtualizaReservaAction`, `DeletaReservaAction`, etc.) | Encapsula cada requisição como um objeto autônomo, desacoplando o Front Controller das operações específicas. |
-| **Factory Method** | Criacional | `ServicoFactory` e subclasses concretas (`CafeManhaFactory`, `TransferAeroportoFactory`, `PasseioBarcoFactory`, `SpaRelaxanteFactory`) | Delega a instanciação de serviços adicionais específicos para subclasses especialistas. |
-| **Builder** | Criacional | `ReservaBuilder` com interface fluente (`with...()`, `constroi()`) | Garante a construção segura e validada do objeto complexo `Reserva`, conferindo regras de períodos e capacidades. |
+| **Factory Method** | Criacional | `ServicoFactory` e subclasses concretas (`CafeManhaFactory`, `TransferAeroportoFactory`, `PasseioBarcoFactory`, `SpaRelaxanteFactory`) | Delega a instanciação de serviços adicionais específicos para subclasses especialistas sem acoplamento direto. |
+| **Builder** | Criacional | `ReservaBuilder` com interface fluente (`with...()`, `constroi()`) | Garante a construção segura e validada do objeto complexo `Reserva`, conferindo regras defensivas de períodos e capacidades. |
 | **Strategy** | Comportamental | `CalculadoraTarifa` e interface `RegraTarifa` (`DescontoLongaEstadia`, `DescontoPix`, `TaxaAmbiental`) | Permite a aplicação dinâmica e extensível de políticas de descontos e taxas de preservação. |
 | **State** | Comportamental | `StatusReserva` (enum com regras de transição válidas) | Modela o ciclo de vida formal da reserva (`PENDENTE` ➔ `CONFIRMADA` ➔ `CHECKIN_ATIVO` ➔ `FINALIZADA`), rejeitando transições ilegais. |
 
@@ -67,6 +70,19 @@ O projeto separa claramente os padrões de projeto **GoF (Gang of Four)** dos pa
 | **Service Layer** | Arquitetural | `service.ReservaService` | Centraliza as regras de negócio da pousada, isolando os Controllers da camada de dados. |
 | **DAO (Data Access Object)** | Persistência | `ReservaDAO`, `HospedeDAO`, `ItemServicoDAO`, `AcomodacaoDAO` | Encapsula o acesso JDBC com transações atômicas ACID (`setAutoCommit(false)`, `commit`, `rollback`) e elimina consultas N+1. |
 | **Factory (Conexão)** | Criacional / Infra | `util.FabricaConexao` | Centraliza a obtenção de conexões JDBC com inicialização thread-safe e schema automático. |
+
+---
+
+## 🔒 Arquitetura de Segurança (OWASP)
+
+A aplicação conta com uma camada de segurança robusta implementada em `util.Seguranca` e no Front Controller:
+
+- 🔑 **Hashing de Senhas (PBKDF2):** Utiliza `PBKDF2WithHmacSHA256` com Salt de 16 bytes e 10.000 iterações. Senhas nunca são persistidas em texto plano.
+- ⏱️ **Mitigação de Timing Attacks:** Validação de credenciais e tokens em tempo constante utilizando `MessageDigest.isEqual`.
+- 🛡️ **Proteção CSRF:** Tokens de sincronização gerados na sessão do usuário e validados obrigatoriamente em todas as operações POST que alteram estado.
+- 🚫 **Prevenção de XSS:** Todas as saídas de texto dinâmicas em páginas JSP passam pelo método `util.Html.esc()`, impedindo injeção de scripts maliciosos.
+- 🧭 **Sanitização de Open Redirect:** Bloqueio de redirecionamentos externos e ataques de *CRLF Injection*, aceitando apenas rotas internas controladas.
+- 🔐 **Geração Segura de PIN:** Códigos de acesso digital gerados por gerador de números pseudoaleatórios criptograficamente seguro (`java.security.SecureRandom`).
 
 ---
 
@@ -154,13 +170,28 @@ docker run -p 8080:8080 --name pousada pousada-reservas
 
 ---
 
-## 🧪 Testes Automatizados
+## 🧪 Suíte de Testes Automatizados (42 Testes)
 
 O projeto conta com uma suíte de testes unitários e de integração cobrindo regras de negócio, Builder, Factory Method, Strategy, State, integridade ACID e controle de concorrência:
 
 ```bash
 mvn test
 ```
+
+| Classe de Teste | Quantidade | Escopo Validado |
+| :--- | :--- | :--- |
+| `CalculadoraTarifaTest` | 8 testes | Padrão Strategy: diárias, descontos longa estadia, PIX e taxa ambiental |
+| `ReservaBuilderTest` | 6 testes | Padrão Builder: validações defensivas de datas, períodos e capacidades |
+| `StatusReservaTest` | 4 testes | Padrão State: máquina de estados e validações de transição de check-in |
+| `ServicoFactoryTest` | 4 testes | Padrão Factory Method: criação de itens de serviços adicionais (1:N) |
+| `CommandFactoryTest` | 4 testes | Padrão Command: registro de ações tipadas e resposta HTTP 404 |
+| `AcomodacaoDisponibilidadeTest` | 4 testes | Regra de negócio: detecção de reservas sobrepostas e conflito de vagas |
+| `ReservaDAOPersistenciaTest` | 3 testes | Padrão DAO: transações ACID, integridade 1:N e comprovação de Rollback |
+| `HospedeReservaDesacoplamentoTest`| 2 testes | Integridade: separação da edição de hóspede da edição de reserva |
+| `AcomodacaoDAOTest` | 2 testes | Consulta de acomodações e busca por identificador |
+| `ReservaServiceTest` | 2 testes | Camada de serviço: orquestração de reservas e validação de check-in |
+| `RedirectPreservacaoTest` | 1 teste | Segurança: preservação de parâmetros com URLEncoder |
+| `FormaPagamentoTest` | 2 testes | Tipagem forte: conversões e validação do enum de formas de pagamento |
 
 ---
 
@@ -172,6 +203,7 @@ pousada-reservas/
 ├── 🐳 .dockerignore                      # Arquivos ignorados pelo build Docker
 ├── 📦 pom.xml                            # Configurações do Maven (JDK 17 release, escopos provided)
 ├── 📄 LICENSE                            # Licença MIT
+├── 📄 GUIA_APRESENTACAO.md               # Guia mestre de apresentação acadêmica e defesa M1
 ├── 🖼️ diagrama_classes_uml.png           # Diagrama estrutural de classes
 ├── 🖼️ diagrama_sequencia_uml.png         # Diagrama comportamental de sequência
 ├── 📄 README.md                          # Documentação técnica do projeto
