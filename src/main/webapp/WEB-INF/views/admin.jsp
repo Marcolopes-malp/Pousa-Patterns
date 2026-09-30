@@ -1,11 +1,12 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@page import="java.util.List"%>
 <%@page import="model.Reserva"%>
-<%@page import="dao.ReservaDAO"%>
 <%@page import="util.Html"%>
 <%
-    ReservaDAO dao = new ReservaDAO();
-    List<Reserva> lista = dao.consultarTodos();
+    List<Reserva> lista = (List<Reserva>) request.getAttribute("listaReservas");
+    if (lista == null) {
+        lista = new java.util.ArrayList<>();
+    }
 
     int totalReservas = (lista != null) ? lista.size() : 0;
     long confirmadas = 0;

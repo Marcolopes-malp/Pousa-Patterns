@@ -1,23 +1,13 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@page import="model.Hospede"%>
 <%@page import="model.Acomodacao"%>
-<%@page import="dao.AcomodacaoDAO"%>
 <%@page import="util.Html"%>
 <%
     Hospede usuario = (Hospede) session.getAttribute("usuarioLogado");
     Acomodacao acomodacao = (Acomodacao) request.getAttribute("acomodacao");
     if (acomodacao == null) {
-        String aidStr = request.getParameter("acomodacaoId");
-        if (aidStr != null && !aidStr.trim().isEmpty()) {
-            try {
-                int id = Integer.parseInt(aidStr.trim());
-                acomodacao = new AcomodacaoDAO().buscarPorId(id);
-            } catch (Exception ignored) {}
-        }
-        if (acomodacao == null) {
-            response.sendRedirect("controller.do?btnop=ConsultaTodos");
-            return;
-        }
+        response.sendRedirect("controller.do?btnop=ConsultaTodos");
+        return;
     }
 
     String hojeReserva = java.time.LocalDate.now().toString();

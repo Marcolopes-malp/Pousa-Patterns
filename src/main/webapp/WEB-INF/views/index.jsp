@@ -2,12 +2,13 @@
 <%@page import="java.util.List"%>
 <%@page import="model.Hospede"%>
 <%@page import="model.Acomodacao"%>
-<%@page import="dao.AcomodacaoDAO"%>
 <%@page import="util.Html"%>
 <%
     Hospede usuario = (Hospede) session.getAttribute("usuarioLogado");
-    AcomodacaoDAO acomodacaoDAO = new AcomodacaoDAO();
-    List<Acomodacao> acomodacoes = acomodacaoDAO.listarTodas();
+    List<Acomodacao> acomodacoes = (List<Acomodacao>) request.getAttribute("acomodacoes");
+    if (acomodacoes == null) {
+        acomodacoes = new java.util.ArrayList<>();
+    }
 %>
 <!DOCTYPE html>
 <html lang="pt-BR">

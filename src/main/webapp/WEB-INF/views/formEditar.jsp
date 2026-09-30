@@ -14,7 +14,7 @@
     if (h == null) h = new Hospede();
     List<Acomodacao> acomodacoes = (List<Acomodacao>) request.getAttribute("acomodacoes");
     if (acomodacoes == null) {
-        acomodacoes = new dao.AcomodacaoDAO().listarTodas();
+        acomodacoes = new java.util.ArrayList<>();
     }
 %>
 <!DOCTYPE html>
