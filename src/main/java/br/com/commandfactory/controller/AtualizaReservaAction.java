@@ -162,7 +162,8 @@ public class AtualizaReservaAction implements ICommand {
             }
 
             Reserva reserva = builder.constroi();
-            dao.atualizar(reserva);
+            service.ReservaService reservaService = new service.ReservaService();
+            reservaService.atualizar(reserva, hospede);
 
             request.setAttribute("msg", "Reserva " + reserva.getCodigoLocalizador() + " atualizada com sucesso!");
             request.setAttribute("tipoMsg", "success");
@@ -170,7 +171,7 @@ public class AtualizaReservaAction implements ICommand {
         } catch (Exception e) {
             java.util.logging.Logger.getLogger(AtualizaReservaAction.class.getName())
                     .log(java.util.logging.Level.SEVERE, "Erro ao atualizar dados da reserva", e);
-            String msg = (e instanceof IllegalArgumentException)
+            String msg = (e instanceof IllegalArgumentException || e instanceof IllegalStateException)
                     ? e.getMessage()
                     : "Não foi possível atualizar os dados da reserva no momento. Por favor, tente novamente.";
             request.setAttribute("msg", msg);

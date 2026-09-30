@@ -252,8 +252,8 @@ public class CadastraReservaAction implements ICommand {
 
             Reserva reserva = builder.constroi();
 
-            int idGerado = dao.cadastrar(reserva);
-            reserva.setId(idGerado);
+            service.ReservaService reservaService = new service.ReservaService();
+            reservaService.cadastrar(reserva);
 
             request.setAttribute("reserva", reserva);
             request.setAttribute("msg", "Reserva confirmada com sucesso.");

@@ -49,109 +49,27 @@ public class ProcessarCheckInAutomaticoReservaAction implements ICommand {
             }
 
             int id = Integer.parseInt(request.getParameter("id"));
-            ReservaDAO dao = new ReservaDAO();
-            Reserva reserva = dao.consultarById(id);
+            service.ReservaService service = new service.ReservaService();
+            service.ReservaService.ResultadoCheckIn resultado = service.checkIn(id, usuario);
 
-            if (reserva == null) {
-                request.setAttribute("msg", "Reserva #" + id + " não encontrada para processar check-in.");
-                request.setAttribute("tipoMsg", "danger");
-                return "resultado.jsp";
-            }
-
-            // S2: Controle de Acesso - apenas recepção ou o próprio titular podem fazer check-in
-            if (!usuario.isRecepcao() && (reserva.getHospede() == null || reserva.getHospede().getId() != usuario.getId())) {
-                request.setAttribute("msg", "Acesso não autorizado: você só pode realizar o check-in de suas próprias reservas.");
-                request.setAttribute("tipoMsg", "danger");
-                return "resultado.jsp";
-            }
-
-            // B2: Validação de Estado (Ciclo de Vida da Reserva via StatusReserva)
-            StatusReserva statusAtual = StatusReserva.fromString(reserva.getStatus());
-
-            if (statusAtual == StatusReserva.CHECKIN_ATIVO) {
-                request.setAttribute("reserva", reserva);
+            if (resultado.isJaRealizado()) {
+                request.setAttribute("reserva", resultado.getReserva());
                 request.setAttribute("msg", "O check-in desta reserva já foi realizado anteriormente. Seu PIN de acesso e acomodação já estão liberados.");
                 request.setAttribute("tipoMsg", "warning");
                 return "detalhesReserva.jsp";
             }
 
-            if (statusAtual == StatusReserva.CANCELADA) {
-                request.setAttribute("msg", "Não é possível realizar check-in: a reserva #" + id + " está cancelada.");
-                request.setAttribute("tipoMsg", "danger");
-                return "resultado.jsp";
+            request.setAttribute("reserva", resultado.getReserva());
+            ResultadoCalculoPreco calculo = resultado.getCalculo();
+            if (calculo != null) {
+                request.setAttribute("totalDias", calculo.getNoites());
+                request.setAttribute("subtotalDiarias", calculo.getSubtotalDiarias());
+                request.setAttribute("valorDesconto", calculo.getValorDescontoEstadia());
+                request.setAttribute("totalServicos", calculo.getTotalServicos());
+                request.setAttribute("taxaAmbiental", calculo.getTaxaAmbiental());
+                request.setAttribute("valorDescontoPix", calculo.getValorDescontoPix());
             }
-
-            if (statusAtual == StatusReserva.FINALIZADA) {
-                request.setAttribute("msg", "Não é possível realizar check-in: a reserva #" + id + " já foi finalizada.");
-                request.setAttribute("tipoMsg", "warning");
-                return "resultado.jsp";
-            }
-
-            if (!statusAtual.podeFazerCheckIn()) {
-                request.setAttribute("msg", "Check-in não permitido: reserva com status '" + statusAtual.getDescricao() + "'.");
-                request.setAttribute("tipoMsg", "danger");
-                return "resultado.jsp";
-            }
-
-            // B2: Validação Temporal de Datas
-            LocalDate hoje = LocalDate.now();
-            LocalDate in = LocalDate.parse(reserva.getDataCheckIn());
-            LocalDate out = LocalDate.parse(reserva.getDataCheckOut());
-
-            // Clientes podem antecipar check-in online a partir da véspera da entrada
-            if (!usuario.isRecepcao() && hoje.isBefore(in.minusDays(1))) {
-                request.setAttribute("msg", "O check-in antecipado online fica disponível a partir da véspera da data de entrada (" + in.minusDays(1) + ").");
-                request.setAttribute("tipoMsg", "warning");
-                return "resultado.jsp";
-            }
-
-            if (hoje.isAfter(out)) {
-                request.setAttribute("msg", "Não é possível realizar check-in: o período desta reserva encerrou em " + out + ".");
-                request.setAttribute("tipoMsg", "danger");
-                return "resultado.jsp";
-            }
-
-            long totalDias = ChronoUnit.DAYS.between(in, out);
-            if (totalDias <= 0) {
-                totalDias = 1;
-            }
-
-            // B1: Cálculos para exibição de detalhamento na view
-            CalculadoraPreco calculadora = new CalculadoraPreco();
-            ResultadoCalculoPreco calculo = calculadora.calcular(
-                    totalDias,
-                    reserva.getValorDiaria(),
-                    reserva.getServicos(),
-                    reserva.getFormaPagamento()
-            );
-
-            // B2 / S7: Geração do PIN Smart-Lock com gerador criptograficamente seguro (CSPRNG)
-            int pin = Seguranca.gerarPinFechaduraSeguro();
-
-            // B2: Atualização segura de status e observações (evita concatenação repetida que estoura VARCHAR)
-            reserva.setStatus(StatusReserva.CHECKIN_ATIVO.name());
-
-            String obsOriginal = (reserva.getObservacoes() != null) ? reserva.getObservacoes() : "";
-            obsOriginal = obsOriginal.replaceAll("\\[Check-In.*?\\]", "").trim();
-
-            String pinTag = "[Check-In realizado. PIN Smart-Lock: " + pin + "]";
-            String novaObs = obsOriginal.isEmpty() ? pinTag : obsOriginal + " " + pinTag;
-            if (novaObs.length() > 480) {
-                novaObs = novaObs.substring(0, 480);
-            }
-            reserva.setObservacoes(novaObs);
-
-            // Persiste no banco de dados via DAO
-            dao.atualizar(reserva);
-
-            request.setAttribute("reserva", reserva);
-            request.setAttribute("totalDias", calculo.getNoites());
-            request.setAttribute("subtotalDiarias", calculo.getSubtotalDiarias());
-            request.setAttribute("valorDesconto", calculo.getValorDescontoEstadia());
-            request.setAttribute("totalServicos", calculo.getTotalServicos());
-            request.setAttribute("taxaAmbiental", calculo.getTaxaAmbiental());
-            request.setAttribute("valorDescontoPix", calculo.getValorDescontoPix());
-            request.setAttribute("pinAcesso", pin);
+            request.setAttribute("pinAcesso", resultado.getPin());
             request.setAttribute("msg", "Processo de Check-In Automatizado concluído com sucesso!");
             request.setAttribute("tipoMsg", "success");
 
