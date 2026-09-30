@@ -204,4 +204,45 @@ public class Reserva implements Serializable {
             this.acomodacaoId = acomodacao.getId();
         }
     }
+
+    // Métodos Tipados (Tarefa A4):
+    public java.time.LocalDate getCheckInLocalDate() {
+        return dataCheckIn != null ? java.time.LocalDate.parse(dataCheckIn) : null;
+    }
+
+    public void setCheckInLocalDate(java.time.LocalDate checkIn) {
+        this.dataCheckIn = checkIn != null ? checkIn.toString() : null;
+    }
+
+    public java.time.LocalDate getCheckOutLocalDate() {
+        return dataCheckOut != null ? java.time.LocalDate.parse(dataCheckOut) : null;
+    }
+
+    public void setCheckOutLocalDate(java.time.LocalDate checkOut) {
+        this.dataCheckOut = checkOut != null ? checkOut.toString() : null;
+    }
+
+    public StatusReserva getStatusEnum() {
+        return StatusReserva.fromString(status);
+    }
+
+    public void setStatusEnum(StatusReserva statusEnum) {
+        this.status = statusEnum != null ? statusEnum.name() : StatusReserva.PENDENTE.name();
+    }
+
+    public FormaPagamento getFormaPagamentoEnum() {
+        return FormaPagamento.fromString(formaPagamento);
+    }
+
+    public void setFormaPagamentoEnum(FormaPagamento formaPagamentoEnum) {
+        this.formaPagamento = formaPagamentoEnum != null ? formaPagamentoEnum.getCodigo() : FormaPagamento.PIX.getCodigo();
+    }
+
+    public java.math.BigDecimal getValorDiariaBigDecimal() {
+        return java.math.BigDecimal.valueOf(valorDiaria);
+    }
+
+    public java.math.BigDecimal getValorTotalBigDecimal() {
+        return java.math.BigDecimal.valueOf(valorTotal);
+    }
 }

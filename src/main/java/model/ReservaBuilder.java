@@ -91,9 +91,23 @@ public class ReservaBuilder {
         return this;
     }
 
+    public ReservaBuilder comStatus(StatusReserva status) {
+        this.status = (status != null) ? status.name() : StatusReserva.PENDENTE.name();
+        return this;
+    }
+
     public ReservaBuilder comFormaPagamento(String formaPagamento) {
         this.formaPagamento = formaPagamento;
         return this;
+    }
+
+    public ReservaBuilder comFormaPagamento(FormaPagamento formaPagamento) {
+        this.formaPagamento = (formaPagamento != null) ? formaPagamento.getCodigo() : FormaPagamento.PIX.getCodigo();
+        return this;
+    }
+
+    public ReservaBuilder comPeriodo(LocalDate checkIn, LocalDate checkOut) {
+        return comPeriodo(checkIn != null ? checkIn.toString() : null, checkOut != null ? checkOut.toString() : null);
     }
 
     public ReservaBuilder comObservacoes(String observacoes) {
