@@ -1,0 +1,37 @@
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page import="model.Hospede"%>
+<%@page import="util.Html"%>
+<%
+    Hospede fragUsuario = (Hospede) session.getAttribute("usuarioLogado");
+%>
+<header class="site-header">
+    <div class="header-inner">
+        <a href="controller.do?btnop=ConsultaTodos" class="brand-link">
+            <span>🏖️</span>
+            <span>Pousada Paradiso</span>
+            <span class="brand-badge">Litoral Norte</span>
+        </a>
+
+        <div class="nav-right">
+            <% if (fragUsuario != null) { %>
+                <% if (fragUsuario.isRecepcao()) { %>
+                    <a href="controller.do?btnop=Admin" class="nav-link nav-link-admin">Painel Recepção</a>
+                <% } else { %>
+                    <a href="controller.do?btnop=MinhasReservas" class="nav-link">Minhas Reservas</a>
+                <% } %>
+                <div class="user-pill">
+                    <div class="user-avatar"><%= Html.esc(fragUsuario.getNomeCompleto().substring(0, 1).toUpperCase()) %></div>
+                    <span><%= Html.esc(fragUsuario.getNomeCompleto().split(" ")[0]) %></span>
+                </div>
+                <form action="controller.do" method="POST" style="margin: 0; display: inline;">
+                    <input type="hidden" name="btnop" value="LogoutCliente">
+                    <input type="hidden" name="csrfToken" value="<%= session.getAttribute("csrfToken") %>">
+                    <button type="submit" class="btn-logout" title="Sair do sistema">Sair</button>
+                </form>
+            <% } else { %>
+                <a href="controller.do?btnop=Login" class="nav-link">Entrar</a>
+                <a href="controller.do?btnop=Cadastro" class="btn-primary-action btn-nav-cadastro">Cadastrar</a>
+            <% } %>
+        </div>
+    </div>
+</header>

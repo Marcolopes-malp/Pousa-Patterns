@@ -20,34 +20,28 @@
 </head>
 <body style="background: var(--bg-surface); min-height: 100vh; display: flex; flex-direction: column;">
 
-    <header class="site-header">
-        <div class="header-inner">
-            <a href="controller.do?btnop=ConsultaTodos" class="brand-link">
-                <span>🏖️</span>
-                <span>Pousada Paradiso</span>
-            </a>
-            <div class="nav-right">
-                <a href="controller.do?btnop=ConsultaTodos" class="nav-link">&larr; Acomodações</a>
-            </div>
-        </div>
-    </header>
+    <%@ include file="fragments/header.jspf" %>
 
-    <div style="max-width: 520px; margin: 4rem auto; width: 100%; padding: 0 1rem;">
-        <div style="background: #FFFFFF; border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 2.5rem; text-align: center; box-shadow: var(--shadow-card);">
-            <div class="message-bar <%= Html.esc(tipoMsg) %>" style="margin-bottom: 1.5rem; font-size: 1rem;">
-                <%= Html.esc(msg) %>
-            </div>
+    <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 3rem 1rem;">
+        <div style="max-width: 520px; width: 100%;">
+            <div style="background: #FFFFFF; border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 2.5rem; text-align: center; box-shadow: var(--shadow-card);">
+                <div class="message-bar <%= Html.esc(tipoMsg) %>" style="margin-bottom: 1.5rem; font-size: 1rem;">
+                    <%= Html.esc(msg) %>
+                </div>
 
-            <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 2rem;">
-                <a href="controller.do?btnop=MinhasReservas" class="btn-primary-action" style="font-size: 0.9rem;">
-                    Minhas reservas
-                </a>
-                <a href="controller.do?btnop=ConsultaTodos" class="btn-secondary-action" style="font-size: 0.9rem;">
-                    Página inicial
-                </a>
+                <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 2rem;">
+                    <a href="controller.do?btnop=MinhasReservas" class="btn-primary-action" style="font-size: 0.9rem;">
+                        Minhas reservas
+                    </a>
+                    <a href="controller.do?btnop=ConsultaTodos" class="btn-secondary-action" style="font-size: 0.9rem;">
+                        Página inicial
+                    </a>
+                </div>
             </div>
         </div>
     </div>
+
+    <%@ include file="fragments/footer.jspf" %>
 
 </body>
 </html>

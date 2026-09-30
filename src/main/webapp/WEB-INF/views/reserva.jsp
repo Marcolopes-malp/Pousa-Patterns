@@ -79,7 +79,19 @@
             font-weight: 700;
         }
         .payment-card input {
-            display: none;
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+        .payment-card:focus-within {
+            outline: 2px solid var(--brand-primary);
+            outline-offset: 2px;
         }
         .payment-card.active {
             border-color: #222222;
@@ -97,28 +109,7 @@
 </head>
 <body style="background: var(--bg-surface);">
 
-    <header class="site-header">
-        <div class="header-inner">
-            <a href="controller.do?btnop=ConsultaTodos" class="brand-link">
-                <span>🏖️</span>
-                <span>Pousada Paradiso</span>
-            </a>
-            <div class="nav-right">
-                <% if (usuario != null) { %>
-                    <span style="font-size: 0.85rem; color: var(--text-secondary);">Logado como <strong><%= usuario.getNomeCompleto() %></strong></span>
-                    <a href="controller.do?btnop=MinhasReservas" class="nav-link">Minhas Reservas</a>
-                <% } else { 
-                    String targetReservaUrl = "controller.do?btnop=NovaReserva&acomodacaoId=" + acomodacao.getId()
-                            + "&txtCheckIn=" + java.net.URLEncoder.encode(checkInParam, "UTF-8")
-                            + "&txtCheckOut=" + java.net.URLEncoder.encode(checkOutParam, "UTF-8")
-                            + "&txtQtdHospedes=" + java.net.URLEncoder.encode(qtdHospedesParam, "UTF-8");
-                    String loginComRedirect = "controller.do?btnop=Login&redirect=" + java.net.URLEncoder.encode(targetReservaUrl, "UTF-8");
-                %>
-                    <a href="<%= loginComRedirect %>" class="nav-link">Já tem cadastro? Entrar</a>
-                <% } %>
-            </div>
-        </div>
-    </header>
+    <%@ include file="fragments/header.jspf" %>
 
     <main class="container">
 <%
@@ -241,7 +232,16 @@
                             <div style="color: var(--text-secondary); font-size: 0.85rem;">CPF: <strong><%= Html.esc(usuario.getCpf()) %></strong> • E-mail: <strong><%= Html.esc(usuario.getEmail()) %></strong></div>
                             <div style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.2rem;">Telefone: <strong><%= Html.esc(usuario.getTelefone()) %></strong> • Origem: <strong><%= Html.esc(usuario.getCidadeOrigem()) %></strong></div>
                         </div>
-                    <% } else { %>
+                    <% } else { 
+                        String targetReservaUrl = "controller.do?btnop=NovaReserva&acomodacaoId=" + acomodacao.getId()
+                                + "&txtCheckIn=" + java.net.URLEncoder.encode(checkInParam, "UTF-8")
+                                + "&txtCheckOut=" + java.net.URLEncoder.encode(checkOutParam, "UTF-8")
+                                + "&txtQtdHospedes=" + java.net.URLEncoder.encode(qtdHospedesParam, "UTF-8");
+                        String loginComRedirect = "controller.do?btnop=Login&redirect=" + java.net.URLEncoder.encode(targetReservaUrl, "UTF-8");
+                    %>
+                        <div style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: var(--radius-sm); padding: 0.85rem 1rem; margin-bottom: 1.25rem; font-size: 0.875rem; color: #1E40AF;">
+                            Já possui conta na Pousada Paradiso? <a href="<%= Html.esc(loginComRedirect) %>" style="color: #1D4ED8; font-weight: 700; text-decoration: underline;">Faça login aqui</a> para preencher seus dados automaticamente.
+                        </div>
                         <div class="form-row">
                             <div class="form-group" style="grid-column: span 2;">
                                 <label for="txtNomeHospede">Nome completo *</label>
@@ -290,25 +290,25 @@
 
                     <div class="payment-methods">
                         <label class="payment-card active" id="cardPix" onclick="selecionarPagamento('PIX')">
-                            <input type="radio" name="txtFormaPagamento" value="PIX" checked>
+                            <input type="radio" name="txtFormaPagamento" value="PIX" checked onfocus="selecionarPagamento('PIX')" onchange="selecionarPagamento('PIX')">
                             <div>⚡ PIX</div>
                             <div style="font-size: 0.7rem; color: #137333; font-weight: 600;">5% de desconto</div>
                         </label>
 
                         <label class="payment-card" id="cardCartao" onclick="selecionarPagamento('CARTAO_CREDITO')">
-                            <input type="radio" name="txtFormaPagamento" value="CARTAO_CREDITO">
+                            <input type="radio" name="txtFormaPagamento" value="CARTAO_CREDITO" onfocus="selecionarPagamento('CARTAO_CREDITO')" onchange="selecionarPagamento('CARTAO_CREDITO')">
                             <div>💳 Cartão de Crédito</div>
                             <div style="font-size: 0.7rem; color: var(--text-secondary); font-weight: 400;">Em até 6x sem juros</div>
                         </label>
 
                         <label class="payment-card" id="cardTransf" onclick="selecionarPagamento('TRANSFERENCIA')">
-                            <input type="radio" name="txtFormaPagamento" value="TRANSFERENCIA">
+                            <input type="radio" name="txtFormaPagamento" value="TRANSFERENCIA" onfocus="selecionarPagamento('TRANSFERENCIA')" onchange="selecionarPagamento('TRANSFERENCIA')">
                             <div>🏦 Transferência</div>
                             <div style="font-size: 0.7rem; color: var(--text-secondary); font-weight: 400;">Envio de comprovante</div>
                         </label>
 
                         <label class="payment-card" id="cardPresencial" onclick="selecionarPagamento('DINHEIRO')">
-                            <input type="radio" name="txtFormaPagamento" value="DINHEIRO">
+                            <input type="radio" name="txtFormaPagamento" value="DINHEIRO" onfocus="selecionarPagamento('DINHEIRO')" onchange="selecionarPagamento('DINHEIRO')">
                             <div>💵 No Check-In</div>
                             <div style="font-size: 0.7rem; color: var(--text-secondary); font-weight: 400;">Dinheiro ou débito</div>
                         </label>
@@ -508,6 +508,8 @@
             selecionarPagamento('PIX');
         };
     </script>
+
+    <%@ include file="fragments/footer.jspf" %>
 
 </body>
 </html>

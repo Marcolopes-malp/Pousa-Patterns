@@ -22,26 +22,7 @@
 </head>
 <body>
 
-    <header class="site-header">
-        <div class="header-inner">
-            <a href="controller.do?btnop=ConsultaTodos" class="brand-link">
-                <span>🏖️</span>
-                <span>Pousada Paradiso</span>
-            </a>
-            <div class="nav-right">
-                <a href="controller.do?btnop=ConsultaTodos" class="nav-link">Explorar Acomodações</a>
-                <div class="user-pill">
-                    <div class="user-avatar"><%= Html.esc(usuario.getNomeCompleto().substring(0, 1).toUpperCase()) %></div>
-                    <span><%= Html.esc(usuario.getNomeCompleto().split(" ")[0]) %></span>
-                </div>
-                <form action="controller.do" method="POST" style="display:inline;">
-                    <input type="hidden" name="btnop" value="LogoutCliente">
-                    <input type="hidden" name="csrfToken" value="<%= session.getAttribute("csrfToken") %>">
-                    <button type="submit" class="nav-link" style="background:none; border:none; color: var(--text-secondary); font-size: 0.85rem; cursor:pointer;">Sair</button>
-                </form>
-            </div>
-        </div>
-    </header>
+    <%@ include file="fragments/header.jspf" %>
 
     <main class="container" style="max-width: 980px;">
         <div style="margin-bottom: 2rem;">
@@ -121,12 +102,7 @@
         <% } %>
     </main>
 
-    <footer class="site-footer">
-        <div class="footer-inner">
-            <div>© 2026 Pousada Paradiso. Avaliação M1 - Engenharia de Software (UMC).</div>
-            <div>Aluno: Marco Antonio Lopes Pedro (G14)</div>
-        </div>
-    </footer>
+    <%@ include file="fragments/footer.jspf" %>
 
 </body>
 </html>

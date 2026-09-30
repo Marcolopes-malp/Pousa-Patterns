@@ -1,0 +1,18 @@
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page import="model.Hospede"%>
+<%
+    Hospede footerUsuario = (Hospede) session.getAttribute("usuarioLogado");
+%>
+<footer class="site-footer">
+    <div class="footer-inner">
+        <div>
+            © <%= java.time.Year.now().getValue() %> Pousada Paradiso. Avaliação M1 - Engenharia de Software (UMC).
+        </div>
+        <div>
+            Aluno: Marco Antonio Lopes Pedro (G14)
+            <% if (footerUsuario != null && footerUsuario.isRecepcao()) { %>
+                • <a href="controller.do?btnop=Admin" class="footer-link">Painel da Recepção</a>
+            <% } %>
+        </div>
+    </div>
+</footer>

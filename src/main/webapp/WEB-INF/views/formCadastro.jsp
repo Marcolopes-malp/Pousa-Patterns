@@ -9,18 +9,7 @@
 </head>
 <body style="background: var(--bg-surface);">
 
-    <header class="site-header">
-        <div class="header-inner">
-            <a href="controller.do?btnop=ConsultaTodos" class="brand-link">
-                <span>🏖️</span>
-                <span>Pousada Paradiso</span>
-                <span class="brand-badge">Painel Recepção</span>
-            </a>
-            <div class="nav-right">
-                <a href="controller.do?btnop=Admin" class="nav-link">&larr; Voltar para a gestão</a>
-            </div>
-        </div>
-    </header>
+    <%@ include file="fragments/header.jspf" %>
 
     <main class="container" style="max-width: 820px;">
         <div style="background: #FFFFFF; border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 2rem; box-shadow: var(--shadow-card);">
@@ -150,6 +139,8 @@
             </form>
         </div>
     </main>
+
+    <%@ include file="fragments/footer.jspf" %>
 
 </body>
 </html>

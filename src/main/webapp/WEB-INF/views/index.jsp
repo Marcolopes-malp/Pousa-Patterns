@@ -20,37 +20,7 @@
 </head>
 <body>
 
-    <header class="site-header">
-        <div class="header-inner">
-            <a href="controller.do?btnop=ConsultaTodos" class="brand-link">
-                <span>🏖️</span>
-                <span>Pousada Paradiso</span>
-                <span class="brand-badge">Litoral Norte</span>
-            </a>
-
-            <div class="nav-right">
-                <% if (usuario != null) { %>
-                    <% if (usuario.isRecepcao()) { %>
-                        <a href="controller.do?btnop=Admin" class="nav-link" style="color: #6366F1; font-weight: 700;">Painel Recepção</a>
-                    <% } else { %>
-                        <a href="controller.do?btnop=MinhasReservas" class="nav-link">Minhas Reservas</a>
-                    <% } %>
-                    <div class="user-pill">
-                        <div class="user-avatar"><%= Html.esc(usuario.getNomeCompleto().substring(0, 1).toUpperCase()) %></div>
-                        <span><%= Html.esc(usuario.getNomeCompleto().split(" ")[0]) %></span>
-                    </div>
-                    <form action="controller.do" method="POST" style="display:inline;">
-                        <input type="hidden" name="btnop" value="LogoutCliente">
-                        <input type="hidden" name="csrfToken" value="<%= session.getAttribute("csrfToken") %>">
-                        <button type="submit" class="nav-link" style="background:none; border:none; color: var(--text-secondary); font-size: 0.85rem; cursor:pointer;">Sair</button>
-                    </form>
-                <% } else { %>
-                    <a href="controller.do?btnop=Login" class="nav-link">Entrar</a>
-                    <a href="controller.do?btnop=Cadastro" class="btn-primary-action" style="padding: 0.55rem 1.1rem; font-size: 0.85rem; border-radius: var(--radius-full);">Cadastrar</a>
-                <% } %>
-            </div>
-        </div>
-    </header>
+    <%@ include file="fragments/header.jspf" %>
 
     <main class="container">
         <section class="hero-compact">
@@ -132,19 +102,7 @@
         </section>
     </main>
 
-    <footer class="site-footer">
-        <div class="footer-inner">
-            <div>
-                © 2026 Pousada Paradiso. Sistema de Reservas para Avaliação M1 - Eng. Software (UMC).
-            </div>
-            <div>
-                Aluno: Marco Antonio Lopes Pedro (G14)
-                <% if (usuario != null && usuario.isRecepcao()) { %>
-                    • <a href="controller.do?btnop=Admin" class="footer-link">Painel da Recepção</a>
-                <% } %>
-            </div>
-        </div>
-    </footer>
+    <%@ include file="fragments/footer.jspf" %>
 
 </body>
 </html>

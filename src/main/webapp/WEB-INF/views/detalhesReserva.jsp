@@ -24,18 +24,7 @@
 </head>
 <body>
 
-    <header class="site-header">
-        <div class="header-inner">
-            <a href="controller.do?btnop=ConsultaTodos" class="brand-link">
-                <span>🏖️</span>
-                <span>Pousada Paradiso</span>
-            </a>
-            <div class="nav-right">
-                <a href="controller.do?btnop=MinhasReservas" class="nav-link">Minhas Reservas</a>
-                <a href="controller.do?btnop=ConsultaTodos" class="nav-link">&larr; Acomodações</a>
-            </div>
-        </div>
-    </header>
+    <%@ include file="fragments/header.jspf" %>
 
     <main class="container" style="max-width: 860px;">
 
@@ -81,8 +70,8 @@
                 </div>
             </div>
 
-            <!-- Dados da Estadia e Hóspede -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+            <!-- Dados da Estadia e Hóspede (A6: grid responsivo) -->
+            <div class="reserva-grid-2col">
                 <div style="background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 1.25rem;">
                     <h3 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary);">
                         Acomodação
@@ -156,12 +145,7 @@
         </div>
     </main>
 
-    <footer class="site-footer">
-        <div class="footer-inner">
-            <div>© 2026 Pousada Paradiso. Avaliação M1 - Engenharia de Software (UMC).</div>
-            <div>Aluno: Marco Antonio Lopes Pedro (G14)</div>
-        </div>
-    </footer>
+    <%@ include file="fragments/footer.jspf" %>
 
 </body>
 </html>

@@ -53,29 +53,18 @@
 </head>
 <body style="background: #FAFAFA;">
 
-    <header class="site-header">
-        <div class="header-inner">
-            <a href="controller.do?btnop=ConsultaTodos" class="brand-link">
-                <span>🏖️</span>
-                <span>Pousada Paradiso</span>
-                <span class="brand-badge" style="background: #222222; color: #FFFFFF;">Painel da Recepção</span>
-            </a>
-            <div class="nav-right">
-                <a href="controller.do?btnop=ConsultaTodos" class="nav-link">&larr; Visão do Cliente</a>
-                <a href="controller.do?btnop=CadastroManual" class="btn-primary-action" style="padding: 0.5rem 1rem; font-size: 0.85rem;">+ Nova Reserva Manual</a>
-            </div>
-        </div>
-    </header>
+    <%@ include file="fragments/header.jspf" %>
 
     <main class="container">
-        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
             <div>
                 <h1 style="font-size: 1.8rem; font-weight: 800; letter-spacing: -0.02em;">Gestão de Reservas</h1>
                 <p style="color: var(--text-secondary); font-size: 0.95rem;">
                     Visão administrativa completa para avaliação de CRUD, DAO e padrões de projeto.
                 </p>
             </div>
-            <div style="display: flex; gap: 1rem;">
+            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                <a href="controller.do?btnop=CadastroManual" class="btn-primary-action" style="padding: 0.5rem 1rem; font-size: 0.85rem;">+ Nova Reserva Manual</a>
                 <div style="background: #FFFFFF; border: 1px solid var(--border-default); padding: 0.6rem 1rem; border-radius: var(--radius-sm); font-size: 0.85rem;">
                     Total de reservas: <strong><%= totalReservas %></strong>
                 </div>
@@ -153,12 +142,7 @@
         </div>
     </main>
 
-    <footer class="site-footer">
-        <div class="footer-inner">
-            <div>© 2026 Pousada Paradiso. Painel de Gestão da Recepção.</div>
-            <div>Aluno: Marco Antonio Lopes Pedro (G14) • Universidade de Mogi das Cruzes</div>
-        </div>
-    </footer>
+    <%@ include file="fragments/footer.jspf" %>
 
 </body>
 </html>

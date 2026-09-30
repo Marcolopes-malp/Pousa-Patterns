@@ -16,19 +16,10 @@
 </head>
 <body style="background: var(--bg-surface); min-height: 100vh; display: flex; flex-direction: column;">
 
-    <header class="site-header">
-        <div class="header-inner">
-            <a href="controller.do?btnop=ConsultaTodos" class="brand-link">
-                <span>🏖️</span>
-                <span>Pousada Paradiso</span>
-            </a>
-            <div class="nav-right">
-                <a href="controller.do?btnop=ConsultaTodos" class="nav-link">&larr; Voltar para as acomodações</a>
-            </div>
-        </div>
-    </header>
+    <%@ include file="fragments/header.jspf" %>
 
-    <div style="max-width: 480px; margin: 2.5rem auto; width: 100%; padding: 0 1rem;">
+    <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 2.5rem 1rem;">
+        <div style="max-width: 480px; width: 100%;">
         <div style="background: #FFFFFF; border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 2rem; box-shadow: var(--shadow-card);">
             <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 0.3rem;">Criar sua conta</h2>
             <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem;">
@@ -90,6 +81,8 @@
             </div>
         </div>
     </div>
+
+    <%@ include file="fragments/footer.jspf" %>
 
 </body>
 </html>

@@ -644,3 +644,63 @@ footer.site-footer {
         width: 100%;
     }
 }
+
+/* Layout responsivo e acessibilidade (A6) */
+.reserva-grid-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+@media (max-width: 768px) {
+    .reserva-grid-2col {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+
+.sr-only-radio {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+.sr-only-radio:focus + .payment-radio-content {
+    outline: 2px solid var(--brand-primary);
+    outline-offset: 2px;
+}
+
+.nav-link-admin {
+    color: #6366F1;
+    font-weight: 700;
+}
+.btn-nav-cadastro {
+    padding: 0.55rem 1.1rem;
+    font-size: 0.85rem;
+    border-radius: var(--radius-full);
+}
+.footer-icon { font-size: 1.5rem; }
+.footer-title { color: #FFFFFF; }
+.footer-subtitle { margin: 0; font-size: 0.8rem; color: #9CA3AF; }
+.footer-copy { margin: 0; font-size: 0.8rem; color: #9CA3AF; }
+
+.btn-logout {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    cursor: pointer;
+    font-family: inherit;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    transition: color 0.15s ease;
+}
+.btn-logout:hover {
+    color: var(--text-primary);
+}
+
