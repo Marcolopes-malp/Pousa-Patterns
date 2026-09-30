@@ -13,17 +13,19 @@ RUN mvn clean package -DskipTests
 FROM tomcat:9.0.98-jdk17-temurin
 LABEL maintainer="Marco Antonio Lopes Pedro"
 
-# C2: Configuração de usuário não-root para segurança e diretório de dados
+# C2: Configuração de usuário não-root, diretório de dados e suporte à porta dinâmica ($PORT) do Railway
 RUN groupadd -r appgroup && useradd -r -g appgroup -d /usr/local/tomcat appuser && \
-    mkdir -p /app/data && chown -R appuser:appgroup /usr/local/tomcat /app/data
+    mkdir -p /app/data && \
+    echo 'if [ -n "$PORT" ]; then sed -i "s/port=\"8080\"/port=\"$PORT\"/g" /usr/local/tomcat/conf/server.xml; fi' > /usr/local/tomcat/bin/setenv.sh && \
+    chmod +x /usr/local/tomcat/bin/setenv.sh && \
+    chown -R appuser:appgroup /usr/local/tomcat /app/data
 
 # Remover aplicações padrão do Tomcat e implantar como ROOT
 RUN rm -rf /usr/local/tomcat/webapps/*
 COPY --from=builder /app/target/pousada-reservas.war /usr/local/tomcat/webapps/ROOT.war
 RUN chown appuser:appgroup /usr/local/tomcat/webapps/ROOT.war
 
-# Volume para persistência dos dados do banco H2
-VOLUME /app/data
+# Configuração do banco H2 (para persistência no Railway, anexe um Railway Volume montado em /app/data)
 ENV DB_PATH=/app/data/pousada_db
 
 USER appuser
