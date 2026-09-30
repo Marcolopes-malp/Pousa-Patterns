@@ -94,10 +94,8 @@ public class ReservaDAO {
     }
 
     public void atualizar(Reserva reserva) throws ClassNotFoundException, SQLException {
-        if (reserva.getHospede() != null && reserva.getHospede().getId() > 0) {
-            hospedeDAO.atualizar(reserva.getHospede());
-        }
-
+        // B7: Desacoplamento da edição de hóspede da edição de reserva.
+        // A reserva não deve atualizar incondicionalmente a tabela hospedes.
         String sql = "UPDATE reservas SET codigo_localizador = ?, data_checkin = ?, data_checkout = ?, " +
                 "quantidade_hospedes = ?, tipo_quarto = ?, valor_diaria = ?, valor_total = ?, " +
                 "status = ?, forma_pagamento = ?, observacoes = ?, hospede_id = ?, acomodacao_id = ? " +

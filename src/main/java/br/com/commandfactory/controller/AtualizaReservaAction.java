@@ -51,7 +51,32 @@ public class AtualizaReservaAction implements ICommand {
             String telefone = request.getParameter("txtTelefone");
             String cidade = request.getParameter("txtCidadeOrigem");
 
-            Hospede hospede = new Hospede(hospedeId, nome, cpf, email, telefone, cidade);
+            // B7: Validar unicidade do e-mail para não colidir com outro hóspede
+            dao.HospedeDAO hospedeDAO = new dao.HospedeDAO();
+            if (email != null && !email.trim().isEmpty()) {
+                Hospede outro = hospedeDAO.buscarPorEmail(email.trim());
+                if (outro != null && outro.getId() != hospedeId) {
+                    request.setAttribute("msg", "O e-mail '" + email.trim() + "' já está cadastrado para outro hóspede.");
+                    request.setAttribute("tipoMsg", "danger");
+                    return "resultado.jsp";
+                }
+            }
+
+            Hospede hospede = null;
+            if (hospedeId > 0) {
+                hospede = hospedeDAO.consultarById(hospedeId);
+                if (hospede != null) {
+                    hospede.setNomeCompleto(nome);
+                    hospede.setCpf(cpf);
+                    hospede.setEmail(email != null ? email.trim() : hospede.getEmail());
+                    hospede.setTelefone(telefone);
+                    hospede.setCidadeOrigem(cidade);
+                    hospedeDAO.atualizar(hospede);
+                }
+            }
+            if (hospede == null) {
+                hospede = new Hospede(hospedeId, nome, cpf, email, telefone, cidade);
+            }
 
             String checkIn = request.getParameter("txtCheckIn");
             String checkOut = request.getParameter("txtCheckOut");

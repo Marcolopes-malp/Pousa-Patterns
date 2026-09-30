@@ -67,7 +67,8 @@ public class AcomodacaoDisponibilidadeTest {
         assertNotNull(acom);
 
         String localizador = "TEST-B6-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
-        Hospede hospede = new Hospede("Teste B6", "111.222.333-44", "teste.b6@email.com", "(11) 99999-0000", "São Paulo - SP");
+        String emailTeste = "teste.b6." + UUID.randomUUID().toString().substring(0, 8) + "@email.com";
+        Hospede hospede = new Hospede("Teste B6", "111.222.333-44", emailTeste, "(11) 99999-0000", "São Paulo - SP");
 
         Reserva reserva = ReservaBuilder.novo()
                 .comCodigoLocalizador(localizador)
@@ -92,5 +93,8 @@ public class AcomodacaoDisponibilidadeTest {
 
         // Limpeza
         reservaDAO.deletar(id);
+        if (reserva.getHospede() != null && reserva.getHospede().getId() > 0) {
+            new HospedeDAO().deletar(reserva.getHospede().getId());
+        }
     }
 }
