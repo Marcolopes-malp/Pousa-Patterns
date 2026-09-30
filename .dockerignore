@@ -1,0 +1,11 @@
+target/
+.git/
+.gitignore
+*.png
+*.log
+.DS_Store
+.idea/
+.vscode/
+*.mv.db
+*.trace.db
+scratch_roadmap.md

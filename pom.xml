@@ -12,9 +12,8 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
-        <tomcat.version>9.0.86</tomcat.version>
+        <maven.compiler.release>17</maven.compiler.release>
+        <tomcat.version>9.0.98</tomcat.version>
     </properties>
 
     <dependencies>
@@ -45,31 +44,36 @@
             <version>2.2.224</version>
         </dependency>
 
-        <!-- Tomcat Embutido e Suporte JSP -->
+        <!-- Tomcat Embutido e Suporte JSP (provided para não poluir o WAR de deploy) -->
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-core</artifactId>
             <version>${tomcat.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-jasper</artifactId>
             <version>${tomcat.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-el</artifactId>
             <version>${tomcat.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.tomcat</groupId>
             <artifactId>tomcat-jasper</artifactId>
             <version>${tomcat.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.tomcat</groupId>
             <artifactId>tomcat-util-scan</artifactId>
             <version>${tomcat.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- JUnit 5 para Testes Unitários de Regras de Negócio e Tarifação (B1) -->
@@ -98,6 +102,7 @@
                 <version>3.1.1</version>
                 <configuration>
                     <mainClass>util.ServidorTomcat</mainClass>
+                    <classpathScope>compile</classpathScope>
                 </configuration>
             </plugin>
         </plugins>
