@@ -22,6 +22,10 @@
         <url-pattern>/controller.do</url-pattern>
     </servlet-mapping>
 
+    <listener>
+        <listener-class>util.DatabaseInitializerListener</listener-class>
+    </listener>
+
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
