@@ -98,3 +98,24 @@ mvn test
 [INFO] Tests run: 42, Failures: 0, Errors: 0, Skipped: 0
 [INFO] BUILD SUCCESS
 ```
+
+---
+
+## 7. Diagramas UML de Apoio
+
+Os diagramas abaixo são gerados a partir do código-fonte (fontes PlantUML em `docs/uml/`; comando `python3 docs/uml/gerar_diagramas.py`). Use-os na **Etapa 4** da apresentação. As versões ampliáveis (SVG) e a especificação completa de endpoints estão no `README.md`.
+
+![Diagrama de Classes — Domínio e Padrões GoF (Builder, Factory Method, Strategy e State)](docs/uml/diagrama_classes_dominio_uml.png)
+
+![Diagrama de Classes — Arquitetura Web em Camadas (Front Controller, Command, Service Layer e DAO)](docs/uml/diagrama_classes_arquitetura_uml.png)
+
+![Diagrama de Sequência — Cadastrar Reserva](docs/uml/diagrama_sequencia_uml.png)
+
+![Diagrama de Sequência — Check-in Inteligente (automação de processo de negócio)](docs/uml/diagrama_sequencia_checkin_uml.png)
+
+**Pontos para destacar diante da banca:**
+
+* No diagrama de domínio, a `Reserva` possui referência única ao `Hospede` titular (associação 1:1 no objeto, FK `hospede_id`) e composição 1:N com `ItemServico` (FK `reserva_id` com `ON DELETE CASCADE`).
+* No diagrama de arquitetura, o `ManterReserva` não conhece nenhum comando concreto: recebe um `ICommand` pronto da `CommandFactory` e apenas executa e encaminha para a view.
+* Na sequência de cadastro, os padrões aparecem em ordem: `CommandFactory` ➔ `Command` ➔ Factory Method (`ServicoFactory`) ➔ Strategy (`CalculadoraPreco`) ➔ Builder (`ReservaBuilder`) ➔ `ReservaService` ➔ `ReservaDAO` com commit/rollback.
+* Na sequência de check-in, o enum `StatusReserva` (State) decide se a transição é permitida antes de qualquer alteração no banco, e o PIN é gerado com `SecureRandom`.
