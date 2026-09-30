@@ -2,17 +2,17 @@
 
 # 🏨 Pousada Paradiso • Sistema de Gestão de Reservas
 
-### ⚡ Plataforma Web Corporativa com Arquitetura Orientada a Objetos e Padrões de Projeto (GoF)
+### ⚡ Plataforma Web com Padrões de Projeto (GoF) e Arquitetura em Camadas
 
 [![Java 17](https://img.shields.io/badge/Java-17-7928CA?style=for-the-badge&logo=openjdk&logoColor=white)](https://www.oracle.com/java/)
-[![Apache Tomcat](https://img.shields.io/badge/Tomcat-9.0-9333EA?style=for-the-badge&logo=apachetomcat&logoColor=white)](https://tomcat.apache.org/)
+[![Apache Tomcat](https://img.shields.io/badge/Tomcat-9.0.98-9333EA?style=for-the-badge&logo=apachetomcat&logoColor=white)](https://tomcat.apache.org/)
 [![Maven 3.9](https://img.shields.io/badge/Maven-3.9-A855F7?style=for-the-badge&logo=apachemaven&logoColor=white)](https://maven.apache.org/)
 [![Docker Ready](https://img.shields.io/badge/Docker-Enabled-6366F1?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 [![License MIT](https://img.shields.io/badge/License-MIT-8B5CF6?style=for-the-badge)](LICENSE)
 
 <br/>
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,24,35,46&height=180&section=header&text=Pousada%20Paradiso&fontSize=42&fontColor=ffffff&animation=fadeIn&fontAlignY=38&desc=Sistema%20de%20Gerenciamento%20de%20Reservas%20%7C%20Padrões%20de%20Projeto%20UMC&descFontSize=16&descAlignY=58" width="100%" alt="Header Banner RGB Glow" />
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12,24,35,46&height=180&section=header&text=Pousada%20Paradiso&fontSize=42&fontColor=ffffff&animation=fadeIn&fontAlignY=38&desc=Sistema%20de%20Gerenciamento%20de%20Reservas%20%7C%20Padrões%20de%20Projeto%20UMC&descFontSize=16&descAlignY=58" width="100%" alt="Header Banner" />
 
 </div>
 
@@ -20,15 +20,16 @@
 
 ## 🌌 Visão Geral
 
-Inspirado em plataformas de hospitalidade de alto padrão (*Airbnb*, *Booking*), o **Pousada Paradiso** é uma solução Web completa e robusta desenvolvida em **Java EE (JSP/Servlets)** para administração integral de reservas, hóspedes e experiências de hotelaria.
+Inspirado em plataformas de hospitalidade de alto padrão (*Airbnb*, *Booking*), o **Pousada Paradiso** é uma solução Web desenvolvida em **Java EE (JSP/Servlets 4)** para administração integral de reservas, acomodações, hóspedes e experiências de hotelaria.
 
-O ecossistema implementa regras de negócio avançadas de tarifação, automação de check-in inteligente e emissão de chaves digitais (*smart-lock PIN*), sustentado por uma arquitetura em camadas desacoplada e 5 padrões de projeto fundamentais.
+O ecossistema implementa regras de negócio para tarifação dinâmica, controle de disponibilidade de quartos, ciclo de vida de check-in automatizado e emissão de chaves digitais (*smart-lock PIN*), sustentado por uma arquitetura em camadas desacoplada e padrões de projeto GoF e arquiteturais.
 
 ```
        ┌────────────────────────────────────────────────────────┐
-       │   🟣 MVC Front Controller  │  🟣 Command Pattern       │
-       │   🟣 Factory Method        │  🟣 Builder Pattern       │
-       │   🟣 DAO (JDBC / H2 / MySQL)                           │
+       │   🟣 Padrões GoF: Command, Factory Method, Builder,   │
+       │                   Strategy, State                      │
+       │   🟣 Arquitetura: MVC + Front Controller, Service, DAO │
+       │   🟣 Persistência: JDBC Transacional ACID (H2 / MySQL) │
        └────────────────────────────────────────────────────────┘
 ```
 
@@ -36,25 +37,63 @@ O ecossistema implementa regras de negócio avançadas de tarifação, automaç�
 
 ## 🔮 Destaques da Solução
 
-- 🛎️ **Gestão Completa de Reservas (CRUD):** 11 atributos de domínio detalhados, controle de status em tempo real (`PENDENTE`, `CONFIRMADA`, `CANCELADA`) e cálculo dinâmico de diárias.
-- 👤 **Hóspede Titular (1:1):** Cadastro completo, validação cadastral, credenciais de acesso e rastreamento de histórico.
-- 🍹 **Itens de Serviços Adicionais (1:N):** Adição modular de serviços de lazer (Café Colonial na Cama, Transfer Privativo, Passeio de Barco, Spa com Pedras Quentes).
-- ⚡ **Check-in Inteligente Automatizado:** Rotina de validação operacional que processa diárias, aplica taxas de preservação ambiental, descontos fidelidade *long-stay* e gera PIN de abertura para fechaduras inteligentes.
-- 🛡️ **Banco Híbrido com Fallback Resiliente:** Conexão nativa com MySQL de produção e transição instantânea e transparente para banco embutido **H2** local sem necessidade de configuração prévia.
+- 🛎️ **Gestão Completa de Reservas (CRUD):** 11 atributos de domínio detalhados, controle de status em tempo real (`PENDENTE`, `CONFIRMADA`, `CHECKIN_ATIVO`, `FINALIZADA`, `CANCELADA`) e cálculo dinâmico de diárias.
+- 👤 **Hóspede Titular (1:1):** Cadastro completo, credenciais com hash PBKDF2 + salt, controle de perfil (`CLIENTE` / `RECEPCAO`) e proteção contra sequestro de contas e CSRF.
+- 🍹 **Itens de Serviços Adicionais (1:N):** Adição modular de serviços de lazer (Café Colonial na Cama, Transfer Privativo, Passeio de Barco, Massagem Terapêutica) persistidos atomicamente.
+- ⚡ **Check-in Inteligente Automatizado:** Rotina de validação operacional com máquina de estados que impede check-ins repetidos ou em reservas canceladas, e gera PIN seguro via `SecureRandom`.
+- 🛡️ **Banco de Dados Transacional e Resiliente:** Transações ACID com commit/rollback em conexão única, eliminação de N+1 queries via `JOIN` e carga em lote, e suporte a H2 embutido ou MySQL configurado por variáveis de ambiente.
 
 ---
 
 ## 🧩 Padrões de Projeto (Design Patterns)
 
-O projeto foi estruturado rigorosamente com base no padrão arquitetural **GoF (Gang of Four)**:
+O projeto separa claramente os padrões de projeto **GoF (Gang of Four)** dos padrões arquiteturais e de persistência:
 
-| Padrão | Classificação | Implementação no Projeto | Propósito Arquitetural |
+### Padrões GoF Implementados
+
+| Padrão | Tipo GoF | Implementação no Projeto | Propósito |
 | :--- | :--- | :--- | :--- |
-| **DAO** *(Data Access Object)* | Estrutural / Persistência | `ReservaDAO`, `HospedeDAO`, `ItemServicoDAO`, `FabricaConexao` | Isola totalmente a lógica de negócios das queries SQL (`PreparedStatement`, `ResultSet`, transações ACID). |
-| **MVC + Front Controller** | Arquitetural | Servlet central `controller.ManterReserva` mapeada para `/controller.do` | Ponto único de entrada para requisições HTTP, despachando para as Views JSP correspondentes. |
-| **COMMAND** | Comportamental | Interface `ICommand` com classes dedicadas (`CadastraReservaAction`, `AtualizaReservaAction`, `DeletaReservaAction`, etc.) | Encapsula cada operação do sistema como um objeto independente, eliminando estruturas condicionais gigantescas (`if/else`, `switch`). |
-| **FACTORY METHOD** | Criacional | `ServicoFactory` com subclasses (`CafeManhaFactory`, `TransferAeroportoFactory`, `PasseioBarcoFactory`, `SpaRelaxanteFactory`) | Delega a criação de instâncias de serviços específicos para subclasses concretas, garantindo extensibilidade aberta. |
-| **BUILDER** | Criacional | `ReservaBuilder` com interface fluente (`with...()`, `constroi()`) | Garante a construção segura e atômica do objeto complexo `Reserva`, com validação prévia de integridade e imutabilidade. |
+| **Command** | Comportamental | Interface `ICommand` e subclasses (`CadastraReservaAction`, `AtualizaReservaAction`, `DeletaReservaAction`, etc.) | Encapsula cada requisição como um objeto autônomo, desacoplando o Front Controller das operações específicas. |
+| **Factory Method** | Criacional | `ServicoFactory` e subclasses concretas (`CafeManhaFactory`, `TransferAeroportoFactory`, `PasseioBarcoFactory`, `SpaRelaxanteFactory`) | Delega a instanciação de serviços adicionais específicos para subclasses especialistas. |
+| **Builder** | Criacional | `ReservaBuilder` com interface fluente (`with...()`, `constroi()`) | Garante a construção segura e validada do objeto complexo `Reserva`, conferindo regras de períodos e capacidades. |
+| **Strategy** | Comportamental | `CalculadoraTarifa` e interface `RegraTarifa` (`DescontoLongaEstadia`, `DescontoPix`, `TaxaAmbiental`) | Permite a aplicação dinâmica e extensível de políticas de descontos e taxas de preservação. |
+| **State** | Comportamental | `StatusReserva` (enum com regras de transição válidas) | Modela o ciclo de vida formal da reserva (`PENDENTE` ➔ `CONFIRMADA` ➔ `CHECKIN_ATIVO` ➔ `FINALIZADA`), rejeitando transições ilegais. |
+
+### Padrões Arquiteturais e Estruturais
+
+| Padrão | Tipo | Implementação | Propósito |
+| :--- | :--- | :--- | :--- |
+| **Front Controller + MVC** | Arquitetural | `controller.ManterReserva` mapeado em `/controller.do` | Ponto único de entrada para todas as requisições HTTP, despachando para as Views JSP protegidas em `WEB-INF/views/`. |
+| **Service Layer** | Arquitetural | `service.ReservaService` | Centraliza as regras de negócio da pousada, isolando os Controllers da camada de dados. |
+| **DAO (Data Access Object)** | Persistência | `ReservaDAO`, `HospedeDAO`, `ItemServicoDAO`, `AcomodacaoDAO` | Encapsula o acesso JDBC com transações atômicas ACID (`setAutoCommit(false)`, `commit`, `rollback`) e elimina consultas N+1. |
+| **Factory (Conexão)** | Criacional / Infra | `util.FabricaConexao` | Centraliza a obtenção de conexões JDBC com inicialização thread-safe e schema automático. |
+
+---
+
+## 👥 Contas de Demonstração (Seed)
+
+Para facilitar testes e avaliação da banca examinadora, a aplicação inicializa automaticamente com os seguintes usuários:
+
+| Perfil | E-mail | Senha | Permissões |
+| :--- | :--- | :--- | :--- |
+| **Recepção** | `recepcao@pousada.com.br` | `admin123` | Acesso ao Painel Administrativo, edição/exclusão de reservas, cadastro manual |
+| **Hóspede** | `marco.pedro@pousada.com.br` | `123456` | Acesso a "Minhas Reservas", check-in automático de suas estadias |
+| **Hóspede** | `mariana.ramos@email.com` | `123456` | Consulta e visualização de reservas do usuário |
+
+---
+
+## ⚙️ Variáveis de Ambiente
+
+A aplicação segue os princípios do *12-Factor App* e pode ser configurada via variáveis de ambiente:
+
+| Variável | Padrão | Descrição |
+| :--- | :--- | :--- |
+| `PORT` | `8080` | Porta do servidor HTTP |
+| `DB_ENGINE` | `h2` | Motor de banco de dados (`h2` ou `mysql`) |
+| `DB_URL` | *(calculado)* | String JDBC completa (ex: `jdbc:mysql://localhost:3306/pousada_db`) |
+| `DB_USER` | `sa` (H2) / `root` (MySQL) | Usuário do banco de dados |
+| `DB_PASS` | `""` | Senha do banco de dados |
+| `DB_PATH` | `./pousada_db` | Caminho do arquivo de dados do H2 local |
 
 ---
 
@@ -72,7 +111,7 @@ Contempla o relacionamento entre o Front Controller, a interface `ICommand`, as 
 <br/>
 
 ### 🟣 2. Diagrama de Sequência
-Exemplifica o ciclo de vida completo de uma requisição Web: desde a submissão no formulário JSP, passando pelo `ManterReserva`, invocação reflexiva do `Command`, persistência via `DAO` até a renderização do feedback.
+Exemplifica o ciclo de vida completo de uma requisição Web: submissão no formulário JSP, despacho no Front Controller, execução da Command, chamada ao Service e persistência no DAO.
 
 <div align="center">
   <img src="diagrama_sequencia_uml.png" alt="Diagrama de Sequência UML" width="95%" style="border-radius: 8px; box-shadow: 0 0 20px rgba(147, 51, 234, 0.4);" />
@@ -82,11 +121,9 @@ Exemplifica o ciclo de vida completo de uma requisição Web: desde a submissão
 
 ## 🚀 Como Executar o Projeto
 
-Você pode executar a aplicação de **duas formas**: com Docker ou diretamente com Java/Maven.
+### Opção A: Execução Imediata via Maven (Recomendada)
 
-### Opção A: Execução Imediata via Maven (Recomendada para Desenvolvimento)
-
-O projeto já conta com o **Apache Tomcat 9 Embutido** e banco **H2**, não exigindo nenhum software além do JDK 17 e Maven:
+O projeto conta com o **Apache Tomcat 9 Embutido** e banco embutido **H2**, não exigindo nada além do JDK 17 e Maven:
 
 ```bash
 # 1. Clone o repositório
@@ -101,9 +138,9 @@ mvn compile exec:java
 
 ---
 
-### Opção B: Execução via Docker (Ambiente Isolado e Produção)
+### Opção B: Execução via Docker (Ambiente Isolado)
 
-Graças ao *multi-stage build* configurado no `Dockerfile`, o código é compilado com Maven e servido no container oficial do Tomcat 9:
+Graças ao *multi-stage build* otimizado com cache no `Dockerfile`, o código é compilado com Maven e servido no container oficial do Tomcat 9 com usuário não-root:
 
 ```bash
 # 1. Construir a imagem Docker
@@ -117,26 +154,47 @@ docker run -p 8080:8080 --name pousada pousada-reservas
 
 ---
 
+## 🧪 Testes Automatizados
+
+O projeto conta com uma suíte de testes unitários e de integração cobrindo regras de negócio, Builder, Factory Method, Strategy, State, integridade ACID e controle de concorrência:
+
+```bash
+mvn test
+```
+
+---
+
 ## 🗂️ Estrutura do Projeto
 
 ```text
 pousada-reservas/
-├── 🐳 Dockerfile                         # Multi-stage build (Maven + Tomcat 9)
-├── 📦 pom.xml                            # Configurações de dependências Maven
+├── 🐳 Dockerfile                         # Multi-stage build otimizado com cache (Tomcat 9.0.98)
+├── 🐳 .dockerignore                      # Arquivos ignorados pelo build Docker
+├── 📦 pom.xml                            # Configurações do Maven (JDK 17 release, escopos provided)
+├── 📄 LICENSE                            # Licença MIT
 ├── 🖼️ diagrama_classes_uml.png           # Diagrama estrutural de classes
 ├── 🖼️ diagrama_sequencia_uml.png         # Diagrama comportamental de sequência
 ├── 📄 README.md                          # Documentação técnica do projeto
 └── 📁 src/
-    └── 📁 main/
-        ├── 📁 java/                      # Código-fonte Java 17
-        │   ├── 📁 controller/            # Front Controller e Ações (Command Pattern)
-        │   ├── 📁 dao/                   # Camada de Persistência JDBC (DAO Pattern)
-        │   ├── 📁 model/                 # Entidades, Builders e Factories (GoF)
-        │   └── 📁 util/                  # Servidor Tomcat Embutido e Conexão H2/MySQL
-        └── 📁 webapp/                    # Interface Visual Web
-            ├── 📁 css/                   # Folhas de estilo modernas e responsivas
-            ├── 📁 WEB-INF/               # web.xml e configurações do servlet container
-            └── 📄 *.jsp                  # Páginas dinâmicas (Index, Reservas, Admin)
+    ├── 📁 main/
+    │   ├── 📁 java/                      # Código-fonte Java 17
+    │   │   ├── 📁 br/com/commandfactory/controller/ # Commands (ICommand, Actions e CommandFactory)
+    │   │   ├── 📁 controller/            # Front Controller (ManterReserva)
+    │   │   ├── 📁 dao/                   # Persistência JDBC com transações ACID (ReservaDAO, etc.)
+    │   │   ├── 📁 model/                 # Entidades, Enums, Builder, Factory Method e Strategy
+    │   │   ├── 📁 service/               # Camada de Serviço (ReservaService)
+    │   │   └── 📁 util/                  # Conexão, Segurança (PBKDF2), ServidorTomcat e Listeners
+    │   ├── 📁 resources/
+    │   │   └── 📄 schema.sql             # DDL e inicialização de tabelas compatível com H2 e MySQL
+    │   └── 📁 webapp/                    # Interface Visual Web
+    │       ├── 📁 css/                   # Estilos responsivos e acessíveis (style.css)
+    │       └── 📁 WEB-INF/
+    │           ├── 📄 web.xml            # Mapeamento do Front Controller e Listeners
+    │           └── 📁 views/             # Views JSP protegidas contra acesso direto
+    │               ├── 📁 fragments/     # Fragmentos reutilizáveis (header.jspf, footer.jspf)
+    │               └── 📄 *.jsp          # Telas do sistema (index, reserva, admin, etc.)
+    └── 📁 test/
+        └── 📁 java/                      # Suíte de 42 testes unitários (JUnit 5)
 ```
 
 ---
