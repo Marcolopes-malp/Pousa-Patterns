@@ -1,0 +1,291 @@
+@startuml diagrama_classes_dominio_uml
+!pragma layout smetana
+title <b>Diagrama de Classes — Domínio e Padrões GoF de Criação/Comportamento</b>\nPousada Paradiso · Entidade principal <b>Reserva</b> (11 atributos) · Builder · Factory Method · Strategy · State (enum)\n
+skinparam dpi 150
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 12
+skinparam packageStyle rectangle
+skinparam nodesep 40
+skinparam ranksep 50
+skinparam ArrowColor #1F2937
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #1F2937
+  HeaderBackgroundColor #F8FAFC
+}
+skinparam note {
+  BackgroundColor #FFFBEB
+  BorderColor #D97706
+}
+hide empty members
+
+package "model — Entidades de Informação" as PkgModel #F1F5F9 {
+
+  class Reserva <<Entidade Principal>> {
+    - id : int
+    - codigoLocalizador : String
+    - dataCheckIn : String
+    - dataCheckOut : String
+    - quantidadeHospedes : int
+    - tipoQuarto : String
+    - valorDiaria : double
+    - valorTotal : double
+    - status : String
+    - formaPagamento : String
+    - observacoes : String
+    - dataCriacao : String
+    - acomodacaoId : int
+    __
+    + adicionarServico(servico : ItemServico) : void
+    + calcularTotalServicos() : double
+    + getStatusEnum() : StatusReserva
+    + getFormaPagamentoEnum() : FormaPagamento
+    + getCheckInLocalDate() : LocalDate
+    + getCheckOutLocalDate() : LocalDate
+    + getValorTotalBigDecimal() : BigDecimal
+  }
+
+  note right of Reserva
+    <b>Entidade de informação principal</b> (≥ 10 atributos exigidos):
+  11 atributos de negócio + dataCriacao (auditoria).
+  Persistida na tabela <i>reservas</i>
+  (FKs: hospede_id, acomodacao_id).
+  end note
+
+  class Hospede {
+    - id : int
+    - nomeCompleto : String
+    - cpf : String
+    - email : String
+    - telefone : String
+    - cidadeOrigem : String
+    - senha : String «hash PBKDF2»
+    - perfil : String = "CLIENTE" | "RECEPCAO"
+    __
+    + isRecepcao() : boolean
+  }
+
+  class ItemServico {
+    - id : int
+    - reservaId : int
+    - nome : String
+    - descricao : String
+    - precoUnitario : double
+    - quantidade : int
+    __
+    + getSubtotal() : double
+  }
+
+  class Acomodacao {
+    - id : int
+    - nome : String
+    - tipo : String
+    - descricao : String
+    - capacidadePessoas : int
+    - valorDiaria : double
+    - vagasRestantes : int
+    - avaliacao : double
+    - totalAvaliacoes : int
+    - imagemUrl : String
+    - comodidades : String
+  }
+
+  enum StatusReserva <<State>> {
+    PENDENTE
+    CONFIRMADA
+    CHECKIN_ATIVO
+    FINALIZADA
+    CANCELADA
+    __
+    - descricao : String
+    __
+    + {abstract} podeFazerCheckIn() : boolean
+    + {abstract} podeCancelar() : boolean
+    + {abstract} podeFinalizar() : boolean
+    + {static} fromString(valor : String) : StatusReserva
+  }
+
+  enum FormaPagamento {
+    PIX
+    CARTAO_CREDITO
+    TRANSFERENCIA
+    DINHEIRO
+    __
+    - codigo : String
+    - descricao : String
+    - percentualDesconto : double
+    __
+    + {static} fromString(valor : String) : FormaPagamento
+  }
+
+  class ReservaBuilder <<Builder>> {
+    - id : int
+    - codigoLocalizador : String
+    - dataCheckIn : String
+    - dataCheckOut : String
+    - quantidadeHospedes : int = 1
+    - tipoQuarto : String = "Standard"
+    - valorDiaria : double = 250.0
+    - valorTotal : double = 0.0
+    - status : String = "PENDENTE"
+    - formaPagamento : String = "PIX"
+    - observacoes : String
+    - dataCriacao : String
+    - hospede : Hospede
+    - acomodacao : Acomodacao
+    - acomodacaoId : int
+    - capacidadeMaxima : int
+    - servicos : List<ItemServico>
+    __
+    + {static} novo() : ReservaBuilder
+    + comId(id : int) : ReservaBuilder
+    + comCodigoLocalizador(codigo : String) : ReservaBuilder
+    + comHospede(hospede : Hospede) : ReservaBuilder
+    + comPeriodo(checkIn : String, checkOut : String) : ReservaBuilder
+    + comPeriodo(checkIn : LocalDate, checkOut : LocalDate) : ReservaBuilder
+    + comQuantidadeHospedes(quantidade : int) : ReservaBuilder
+    + comAcomodacao(acomodacao : Acomodacao) : ReservaBuilder
+    + comCapacidadeMaxima(capacidade : int) : ReservaBuilder
+    + comTipoQuarto(tipoQuarto : String) : ReservaBuilder
+    + comValorDiaria(valor : double) : ReservaBuilder
+    + comValorTotal(valor : double) : ReservaBuilder
+    + comStatus(status : StatusReserva) : ReservaBuilder
+    + comFormaPagamento(forma : FormaPagamento) : ReservaBuilder
+    + comObservacoes(observacoes : String) : ReservaBuilder
+    + adicionarServico(servico : ItemServico) : ReservaBuilder
+    + comServicos(servicos : List<ItemServico>) : ReservaBuilder
+    + constroi() : Reserva
+  }
+}
+
+package "model.factory — Factory Method" as PkgFactory #FEF3C7 {
+  abstract class ServicoFactory <<Creator>> {
+    + {abstract} criarServico() : ItemServico
+    + criarServico(quantidade : int) : ItemServico
+    + {static} obterFabrica(tipo : String) : ServicoFactory
+  }
+  class CafeManhaFactory <<ConcreteCreator>> {
+    + criarServico() : ItemServico
+  }
+  class TransferAeroportoFactory <<ConcreteCreator>> {
+    + criarServico() : ItemServico
+  }
+  class PasseioBarcoFactory <<ConcreteCreator>> {
+    + criarServico() : ItemServico
+  }
+  class SpaRelaxanteFactory <<ConcreteCreator>> {
+    + criarServico() : ItemServico
+  }
+}
+
+package "model.strategy — Strategy" as PkgStrategy #DCFCE7 {
+  interface PoliticaPrecoStrategy <<Strategy>> {
+    + calcular(noites : long, valorDiaria : double,\n   servicos : List<ItemServico>, formaPagamento : String) : ResultadoCalculoPreco
+  }
+  class PoliticaPrecoPadraoStrategy <<ConcreteStrategy>> {
+    - regraLongaEstadia : DescontoLongaEstadia
+    - regraTaxaAmbiental : TaxaAmbiental
+    - regraDescontoPix : DescontoPix
+    __
+    + calcular(noites, valorDiaria, servicos, formaPagamento) : ResultadoCalculoPreco
+  }
+  class CalculadoraPreco <<Context>> {
+    - strategy : PoliticaPrecoStrategy
+    __
+    + setStrategy(strategy : PoliticaPrecoStrategy) : void
+    + calcular(noites, valorDiaria, servicos, formaPagamento) : ResultadoCalculoPreco
+  }
+  interface RegraTarifa <<Strategy>> {
+    + calcular(baseDeCalculo : double, noites : long, formaPagamento : String) : double
+  }
+  class DescontoLongaEstadia <<ConcreteStrategy>> {
+    + calcular(subtotalDiarias, noites, formaPagamento) : double
+    + getPercentual(noites : long) : double
+  }
+  class TaxaAmbiental <<ConcreteStrategy>> {
+    + {static} PERCENTUAL : double = 0.03
+    __
+    + calcular(baseHospedagemEServicos, noites, formaPagamento) : double
+  }
+  class DescontoPix <<ConcreteStrategy>> {
+    + {static} PERCENTUAL : double = 0.05
+    __
+    + calcular(baseComTaxas, noites, formaPagamento) : double
+    + getPercentual(formaPagamento : String) : double
+  }
+  class ResultadoCalculoPreco <<DTO imutável>> {
+    - noites : long
+    - valorDiaria : double
+    - subtotalDiarias : double
+    - percentualDescontoEstadia : double
+    - valorDescontoEstadia : double
+    - subtotalComDesconto : double
+    - totalServicos : double
+    - taxaAmbiental : double
+    - percentualDescontoPix : double
+    - valorDescontoPix : double
+    - valorTotalFinal : double
+  }
+}
+
+' ---------- Relacionamentos entre entidades ----------
+Reserva --> "1" Hospede : hospede\n(titular)
+Reserva *--> "0..*" ItemServico : servicos
+Reserva --> "0..1" Acomodacao : acomodacao
+Reserva ..> StatusReserva : status
+Reserva ..> FormaPagamento : formaPagamento
+
+' ---------- Builder ----------
+ReservaBuilder ..> Reserva : «create»\nconstroi()
+ReservaBuilder ..> CalculadoraPreco : calcula valorTotal\nquando não informado
+
+' ---------- Factory Method ----------
+ServicoFactory <|-- CafeManhaFactory
+ServicoFactory <|-- TransferAeroportoFactory
+ServicoFactory <|-- PasseioBarcoFactory
+ServicoFactory <|-- SpaRelaxanteFactory
+ServicoFactory ..> ItemServico : «create»\ncriarServico()
+
+' ---------- Strategy ----------
+PoliticaPrecoStrategy <|.. PoliticaPrecoPadraoStrategy
+CalculadoraPreco o--> "1" PoliticaPrecoStrategy : strategy
+PoliticaPrecoPadraoStrategy *--> "1" DescontoLongaEstadia
+PoliticaPrecoPadraoStrategy *--> "1" TaxaAmbiental
+PoliticaPrecoPadraoStrategy *--> "1" DescontoPix
+RegraTarifa <|.. DescontoLongaEstadia
+RegraTarifa <|.. TaxaAmbiental
+RegraTarifa <|.. DescontoPix
+PoliticaPrecoPadraoStrategy ..> ResultadoCalculoPreco : «create»
+
+
+note bottom of Hospede
+  <b>Associação de referência única (1:1 no objeto):</b>
+  cada Reserva aponta para exatamente um Hospede
+  titular (reservas.hospede_id). O mesmo hóspede pode
+  ser titular de várias reservas (listarPorHospede).
+end note
+
+note bottom of ItemServico
+  <b>Composição 1:N:</b> os itens pertencem à reserva
+  (itens_servicos.reserva_id, ON DELETE CASCADE) e são
+  gravados na mesma transação ACID do ReservaDAO.
+end note
+
+note bottom of StatusReserva
+  <b>Máquina de estados</b> (constant-specific methods):
+  PENDENTE → CONFIRMADA | CANCELADA
+  CONFIRMADA → CHECKIN_ATIVO | CANCELADA
+  CHECKIN_ATIVO → FINALIZADA
+  FINALIZADA, CANCELADA → estados terminais
+end note
+
+note bottom of PoliticaPrecoPadraoStrategy
+  <b>Política de preço unificada:</b>
+  1. subtotal = noites × valorDiaria
+  2. − desconto longa estadia (≥4 noites 10%, ≥7 noites 15%)
+  3. + serviços adicionais (1:N)
+  4. + taxa ambiental 3%
+  5. − desconto PIX 5%
+end note
+@enduml

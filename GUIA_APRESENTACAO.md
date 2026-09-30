@@ -54,7 +54,7 @@
 | **Command** | `CommandFactory` e `ICommand` | Cada ação é um comando isolado; `CommandFactory` tipada elimina reflexão frágil. |
 | **Builder (GoF)** | `model.ReservaBuilder` | Construção fluente da Reserva com validações defensivas no método `constroi()`. |
 | **Factory Method** | `model.factory.ServicoFactory` | Subclasses especialistas (`CafeManha`, `Transfer`, etc.) instanciam itens 1:N. |
-| **Strategy (GoF)** | `model.strategy.CalculadoraTarifa` | Encapsula regras de tarifas (diárias, PIX, taxa ambiental) de forma desacoplada. |
+| **Strategy (GoF)** | `model.strategy.PoliticaPrecoStrategy` + `CalculadoraPreco` (contexto) | Encapsula regras de tarifas (diárias, longa estadia, PIX, taxa ambiental) de forma desacoplada; `service.CalculadoraTarifa` é apenas a fachada. |
 | **State (GoF)** | `model.StatusReserva` | Controla transições válidas de status da reserva (`PENDENTE` ➔ `CONFIRMADA` ➔ `CHECKIN_ATIVO`). |
 | **DAO & Transações** | `dao.ReservaDAO` | Persistência JDBC com transações atômicas (commit/rollback) e sem N+1 queries. |
 

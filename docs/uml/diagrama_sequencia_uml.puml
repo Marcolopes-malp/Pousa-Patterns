@@ -1,0 +1,131 @@
+@startuml diagrama_sequencia_uml
+title <b>Diagrama de Sequência — Caso de Uso: Cadastrar Reserva (hóspede autenticado)</b>\nPOST /controller.do?btnop=Cadastra · Front Controller → CommandFactory → Command → Factory Method + Strategy + Builder → Service → DAO (transação ACID)\n
+skinparam dpi 150
+skinparam shadowing false
+skinparam defaultFontSize 12
+skinparam maxMessageSize 300
+skinparam responseMessageBelowArrow true
+skinparam sequenceMessageAlign center
+skinparam sequence {
+  ArrowColor #1F2937
+  LifeLineBorderColor #64748B
+  LifeLineBackgroundColor #F8FAFC
+  GroupBorderColor #475569
+  GroupBackgroundColor #F1F5F9
+}
+skinparam note {
+  BackgroundColor #FFFBEB
+  BorderColor #D97706
+}
+autonumber "<b>0</b>"
+
+actor "Hóspede" as H
+box "View (JSP)" #EDE9FE
+  boundary "reserva.jsp" as V
+  boundary "detalhesReserva.jsp" as V2
+end box
+box "Controller" #DBEAFE
+  control "ManterReserva\n«Front Controller»" as FC
+  control "CommandFactory\n«Factory»" as CF
+  control "CadastraReservaAction\n«Command»" as CMD
+end box
+box "Model / Service" #DCFCE7
+  entity "AcomodacaoDAO" as ADAO
+  entity "ServicoFactory\n«Factory Method»" as SF
+  entity "CalculadoraPreco\n«Strategy»" as CP
+  entity "ReservaBuilder\n«Builder»" as RB
+  entity "Reserva" as R
+  control "ReservaService\n«Service Layer»" as RS
+end box
+box "Persistência" #FCE7F3
+  entity "ReservaDAO\n«DAO»" as RDAO
+  entity "ItemServicoDAO\n«DAO»" as IDAO
+  database "H2 / MySQL" as DB
+end box
+
+H -> V : preenche datas, nº de hóspedes, serviços extras,\nforma de pagamento e confirma a reserva
+activate V
+V -> FC : POST controller.do (btnop=Cadastra, csrfToken, acomodacaoId,\ntxtCheckIn, txtCheckOut, txtQtdHospedes, chkCafe/chkTransfer/chkPasseio/chkSpa, txtFormaPagamento)
+activate FC
+FC -> FC : processRequest(): garante csrfToken na sessão;\nexige POST para ações de mutação
+FC -> CF : criarComando("Cadastra")
+activate CF
+create CMD
+CF -> CMD : «create» new CadastraReservaAction()
+CF --> FC : ICommand
+deactivate CF
+FC -> CMD : executar(request, response)
+activate CMD
+CMD -> CMD : valida token CSRF, usuário logado (sessão),\ndatas (check-out > check-in) e quantidade de hóspedes
+CMD -> ADAO : buscarPorId(acomodacaoId)
+activate ADAO
+ADAO --> CMD : Acomodacao
+deactivate ADAO
+CMD -> RDAO : contarReservasSobrepostas(acomodacaoId, checkIn, checkOut, 0)
+activate RDAO
+RDAO -> DB : SELECT COUNT(*) FROM reservas WHERE acomodacao_id = ?\nAND status <> 'CANCELADA' AND data_checkin < ? AND data_checkout > ?
+DB --> RDAO : total
+RDAO --> CMD : sobrepostas
+deactivate RDAO
+
+alt sobrepostas >= vagasRestantes
+  CMD --> FC : "resultado.jsp" (aviso: sem vagas no período)
+else há vagas disponíveis
+  loop para cada serviço marcado no formulário
+    CMD -> SF : obterFabrica(tipo).criarServico(quantidade)
+    activate SF
+    SF --> CMD : ItemServico (nome, descrição, preço unitário, quantidade)
+    deactivate SF
+  end
+  CMD -> CP : calcular(noites, valorDiaria, servicos, formaPagamento)
+  activate CP
+  CP -> CP : PoliticaPrecoPadraoStrategy: diárias − desconto longa estadia\n+ serviços + taxa ambiental 3% − desconto PIX 5%
+  CP --> CMD : ResultadoCalculoPreco (valorTotalFinal)
+  deactivate CP
+  CMD -> RB : novo().comHospede(h).comPeriodo(in, out).comQuantidadeHospedes(q)\n.comAcomodacao(a).comCapacidadeMaxima(c).comValorDiaria(v)\n.comValorTotal(total).comFormaPagamento(fp).comStatus("CONFIRMADA")\n.adicionarServico(item)…
+  activate RB
+  CMD -> RB : constroi()
+  RB -> RB : valida período, data no passado e capacidade máxima;\ngera codigoLocalizador (POUS-XXXXXX) e dataCriacao
+  create R
+  RB -> R : «create» new Reserva(11 atributos, hospede, servicos)
+  RB --> CMD : Reserva
+  deactivate RB
+  CMD -> RS : cadastrar(reserva)
+  activate RS
+  RS -> RDAO : contarReservasSobrepostas(…)  (revalidação de vagas)
+  RS -> RDAO : cadastrar(reserva)
+  activate RDAO
+  RDAO -> DB : getConexao(); setAutoCommit(false)
+  RDAO -> DB : INSERT INTO reservas (codigo_localizador, data_checkin, …, hospede_id, acomodacao_id)
+  DB --> RDAO : id gerado
+  loop para cada ItemServico da reserva (1:N)
+    RDAO -> IDAO : cadastrar(con, item)
+    activate IDAO
+    IDAO -> DB : INSERT INTO itens_servicos (reserva_id, nome, descricao, preco_unitario, quantidade)
+    deactivate IDAO
+  end
+  alt todas as gravações com sucesso
+    RDAO -> DB : commit()
+  else exceção em qualquer etapa
+    RDAO -> DB : rollback()
+    RDAO --> RS : SQLException
+  end
+  RDAO --> RS : idGerado
+  deactivate RDAO
+  RS --> CMD : Reserva (com id)
+  deactivate RS
+  CMD --> FC : "detalhesReserva.jsp" (request: reserva, msg de sucesso)
+end
+deactivate CMD
+FC -> V2 : forward("/WEB-INF/views/detalhesReserva.jsp")
+deactivate FC
+activate V2
+V2 --> H : exibe código localizador, hóspede titular,\nitens contratados e valor total
+deactivate V2
+deactivate V
+
+note over FC, CMD
+  Falhas de segurança encerram o fluxo antes de qualquer regra de negócio:
+  método ≠ POST → HTTP 405 · token CSRF inválido → HTTP 403 · comando desconhecido → HTTP 404
+end note
+@enduml

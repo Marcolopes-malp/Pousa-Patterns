@@ -40,11 +40,11 @@ O ecossistema implementa regras de negócio para tarifação dinâmica, controle
 
 ## 🔮 Destaques da Solução
 
-- 🛎️ **Gestão Completa de Reservas (CRUD):** 11 atributos de domínio detalhados, controle de status em tempo real (`PENDENTE`, `CONFIRMADA`, `CHECKIN_ATIVO`, `FINALIZADA`, `CANCELADA`) e cálculo dinâmico de diárias.
-- 👤 **Hóspede Titular (1:1):** Cadastro completo, credenciais com hash PBKDF2 + salt, controle de perfil (`CLIENTE` / `RECEPCAO`) e proteção contra sequestro de contas e CSRF.
-- 🍹 **Itens de Serviços Adicionais (1:N):** Adição modular de serviços de lazer (Café Colonial na Cama, Transfer Privativo, Passeio de Barco, Massagem Terapêutica) persistidos atomicamente.
-- ⚡ **Check-in Inteligente Automatizado:** Rotina de validação operacional com máquina de estados que impede check-ins repetidos ou em reservas canceladas, e gera PIN seguro via `SecureRandom`.
-- 🛡️ **Banco de Dados Transacional e Resiliente:** Transações ACID com commit/rollback em conexão única, eliminação de N+1 queries via `JOIN` e carga em lote, e suporte a H2 embutido ou MySQL configurado por variáveis de ambiente.
+- 🛎️ **Gestão Completa de Reservas (CRUD + automação):** entidade `Reserva` com 11 atributos de domínio, operações de inserir, atualizar, excluir, consultar por id e consultar todos, controle de status (`PENDENTE`, `CONFIRMADA`, `CHECKIN_ATIVO`, `FINALIZADA`, `CANCELADA`) e cálculo dinâmico de diárias.
+- 👤 **Hóspede Titular (associação 1:1 por referência):** cada `Reserva` referencia exatamente um `Hospede` titular (`reservas.hospede_id`), com cadastro completo, credenciais com hash PBKDF2 + salt e perfis `CLIENTE` / `RECEPCAO`.
+- 🍹 **Itens de Serviços Adicionais (composição 1:N):** serviços criados por Factory Method (Café da Manhã Colonial, Transfer Executivo, Passeio de Escuna e Massagem Terapêutica) e persistidos atomicamente com a reserva.
+- ⚡ **Check-in Inteligente Automatizado:** rotina de validação operacional com máquina de estados que impede check-ins repetidos ou em reservas canceladas/finalizadas, valida a janela temporal e gera PIN seguro via `SecureRandom`.
+- 🛡️ **Banco de Dados Transacional e Resiliente:** transações ACID com commit/rollback em conexão única, eliminação de N+1 queries via `JOIN` e carga em lote, e suporte a H2 embutido ou MySQL configurado por variáveis de ambiente.
 
 ---
 
@@ -56,20 +56,21 @@ O projeto separa claramente os padrões de projeto **GoF (Gang of Four)** dos pa
 
 | Padrão | Tipo GoF | Implementação no Projeto | Propósito |
 | :--- | :--- | :--- | :--- |
-| **Command** | Comportamental | Interface `ICommand` e subclasses (`CadastraReservaAction`, `AtualizaReservaAction`, `DeletaReservaAction`, etc.) | Encapsula cada requisição como um objeto autônomo, desacoplando o Front Controller das operações específicas. |
-| **Factory Method** | Criacional | `ServicoFactory` e subclasses concretas (`CafeManhaFactory`, `TransferAeroportoFactory`, `PasseioBarcoFactory`, `SpaRelaxanteFactory`) | Delega a instanciação de serviços adicionais específicos para subclasses especialistas sem acoplamento direto. |
-| **Builder** | Criacional | `ReservaBuilder` com interface fluente (`with...()`, `constroi()`) | Garante a construção segura e validada do objeto complexo `Reserva`, conferindo regras defensivas de períodos e capacidades. |
-| **Strategy** | Comportamental | `CalculadoraTarifa` e interface `RegraTarifa` (`DescontoLongaEstadia`, `DescontoPix`, `TaxaAmbiental`) | Permite a aplicação dinâmica e extensível de políticas de descontos e taxas de preservação. |
-| **State** | Comportamental | `StatusReserva` (enum com regras de transição válidas) | Modela o ciclo de vida formal da reserva (`PENDENTE` ➔ `CONFIRMADA` ➔ `CHECKIN_ATIVO` ➔ `FINALIZADA`), rejeitando transições ilegais. |
+| **Command** | Comportamental | Interface `ICommand` e 16 comandos concretos (`CadastraReservaAction`, `AtualizaReservaAction`, `DeletaReservaAction`, `ProcessarCheckInAutomaticoReservaAction`, etc.), obtidos pelo registro tipado `CommandFactory` | Encapsula cada requisição como um objeto autônomo, desacoplando o Front Controller das operações específicas. |
+| **Factory Method** | Criacional | `ServicoFactory` (criador abstrato com `criarServico()`) e criadores concretos `CafeManhaFactory`, `TransferAeroportoFactory`, `PasseioBarcoFactory`, `SpaRelaxanteFactory` | Delega a instanciação de cada `ItemServico` para subclasses especialistas, sem acoplar o comando de cadastro aos produtos concretos. |
+| **Builder** | Criacional | `ReservaBuilder` com interface fluente (`novo()`, `com...()`, `constroi()`) | Garante a construção segura e validada do objeto complexo `Reserva`, conferindo regras defensivas de período, data no passado e capacidade da acomodação. |
+| **Strategy** | Comportamental | Interface `PoliticaPrecoStrategy`, estratégia concreta `PoliticaPrecoPadraoStrategy` e contexto `CalculadoraPreco`; regras `RegraTarifa` (`DescontoLongaEstadia`, `TaxaAmbiental`, `DescontoPix`). `service.CalculadoraTarifa` é apenas a fachada de tarifação | Permite a aplicação dinâmica e extensível de políticas de descontos e taxas sem alterar quem calcula o preço. |
+| **State** | Comportamental | `StatusReserva` (enum com métodos específicos por constante: `podeFazerCheckIn()`, `podeCancelar()`, `podeFinalizar()`) | Modela o ciclo de vida formal da reserva (`PENDENTE` ➔ `CONFIRMADA` ➔ `CHECKIN_ATIVO` ➔ `FINALIZADA`), rejeitando transições ilegais no check-in. |
 
 ### Padrões Arquiteturais e Estruturais
 
 | Padrão | Tipo | Implementação | Propósito |
 | :--- | :--- | :--- | :--- |
-| **Front Controller + MVC** | Arquitetural | `controller.ManterReserva` mapeado em `/controller.do` | Ponto único de entrada para todas as requisições HTTP, despachando para as Views JSP protegidas em `WEB-INF/views/`. |
-| **Service Layer** | Arquitetural | `service.ReservaService` | Centraliza as regras de negócio da pousada, isolando os Controllers da camada de dados. |
-| **DAO (Data Access Object)** | Persistência | `ReservaDAO`, `HospedeDAO`, `ItemServicoDAO`, `AcomodacaoDAO` | Encapsula o acesso JDBC com transações atômicas ACID (`setAutoCommit(false)`, `commit`, `rollback`) e elimina consultas N+1. |
-| **Factory (Conexão)** | Criacional / Infra | `util.FabricaConexao` | Centraliza a obtenção de conexões JDBC com inicialização thread-safe e schema automático. |
+| **Front Controller + MVC** | Arquitetural | `controller.ManterReserva` mapeado em `/controller.do` (e no alias `/ManterReserva`) | Ponto único de entrada para todas as requisições HTTP: gera o token CSRF, exige POST em ações de mutação, aplica o controle de acesso da recepção e despacha para as Views JSP protegidas em `WEB-INF/views/`. |
+| **Registro de Comandos (Simple Factory)** | Criacional / Infra | `br.com.commandfactory.controller.CommandFactory` (`Map<String, Supplier<ICommand>>`) | Mapeamento explícito e tipado entre o parâmetro `btnop` e o comando, sem reflexão; comando desconhecido resulta em HTTP 404. |
+| **Service Layer** | Arquitetural | `service.ReservaService` (cadastro com validação de vagas, check-in e atualização) | Centraliza as regras de negócio da pousada, isolando os Controllers da camada de dados. |
+| **DAO (Data Access Object)** | Persistência | `ReservaDAO`, `HospedeDAO`, `ItemServicoDAO` (JDBC) e `AcomodacaoDAO` (catálogo em memória) | Encapsula o acesso aos dados; `ReservaDAO` executa transações ACID (`setAutoCommit(false)`, `commit`, `rollback`) e elimina consultas N+1. |
+| **Factory (Conexão)** | Criacional / Infra | `util.FabricaConexao` | Centraliza a obtenção de conexões JDBC com inicialização thread-safe e execução automática de `schema.sql` e das cargas iniciais. |
 
 ---
 
@@ -79,10 +80,11 @@ A aplicação conta com uma camada de segurança robusta implementada em `util.S
 
 - 🔑 **Hashing de Senhas (PBKDF2):** Utiliza `PBKDF2WithHmacSHA256` com Salt de 16 bytes e 10.000 iterações. Senhas nunca são persistidas em texto plano.
 - ⏱️ **Mitigação de Timing Attacks:** Validação de credenciais e tokens em tempo constante utilizando `MessageDigest.isEqual`.
-- 🛡️ **Proteção CSRF:** Tokens de sincronização gerados na sessão do usuário e validados obrigatoriamente em todas as operações POST que alteram estado.
-- 🚫 **Prevenção de XSS:** Todas as saídas de texto dinâmicas em páginas JSP passam pelo método `util.Html.esc()`, impedindo injeção de scripts maliciosos.
-- 🧭 **Sanitização de Open Redirect:** Bloqueio de redirecionamentos externos e ataques de *CRLF Injection*, aceitando apenas rotas internas controladas.
-- 🔐 **Geração Segura de PIN:** Códigos de acesso digital gerados por gerador de números pseudoaleatórios criptograficamente seguro (`java.security.SecureRandom`).
+- 🛡️ **Proteção CSRF:** Token de sincronização gerado na sessão e validado nas operações que alteram dados (cadastro e atualização de reserva, exclusão, check-in e logout). Ações de mutação só são aceitas via POST (HTTP 405 caso contrário).
+- 🚫 **Prevenção de XSS:** As saídas de dados vindos do usuário ou do banco nas páginas JSP passam pelo método `util.Html.esc()`, impedindo injeção de scripts maliciosos.
+- 🧭 **Sanitização de Open Redirect:** Bloqueio de redirecionamentos externos e ataques de *CRLF Injection*, aceitando apenas rotas internas do Front Controller.
+- 🔐 **Sessão e PIN Seguros:** Rotação do ID de sessão no login (mitigação de *session fixation*) e códigos de acesso digital gerados por `java.security.SecureRandom`.
+- 🗂️ **Views Protegidas:** Os JSPs ficam em `WEB-INF/views/`, inacessíveis por URL direta (HTTP 404), forçando a passagem pelo Front Controller.
 
 ---
 
@@ -95,6 +97,9 @@ Para facilitar testes e avaliação da banca examinadora, a aplicação iniciali
 | **Recepção** | `recepcao@pousada.com.br` | `admin123` | Acesso ao Painel Administrativo, edição/exclusão de reservas, cadastro manual |
 | **Hóspede** | `marco.pedro@pousada.com.br` | `123456` | Acesso a "Minhas Reservas", check-in automático de suas estadias |
 | **Hóspede** | `mariana.ramos@email.com` | `123456` | Consulta e visualização de reservas do usuário |
+| **Hóspede** | `lucas.prado@email.com` | `123456` | Consulta e visualização de reservas do usuário |
+
+A carga inicial também cria 4 acomodações e 3 reservas de exemplo (`POUS-2026-X01` a `X03`) com serviços adicionais vinculados.
 
 ---
 
@@ -104,7 +109,7 @@ A aplicação segue os princípios do *12-Factor App* e pode ser configurada via
 
 | Variável | Padrão | Descrição |
 | :--- | :--- | :--- |
-| `PORT` | `8080` | Porta do servidor HTTP |
+| `PORT` | `8080` | Porta do servidor HTTP (Tomcat embutido) |
 | `DB_ENGINE` | `h2` | Motor de banco de dados (`h2` ou `mysql`) |
 | `DB_URL` | *(calculado)* | String JDBC completa (ex: `jdbc:mysql://localhost:3306/pousada_db`) |
 | `DB_USER` | `sa` (H2) / `root` (MySQL) | Usuário do banco de dados |
@@ -113,24 +118,90 @@ A aplicação segue os princípios do *12-Factor App* e pode ser configurada via
 
 ---
 
+## 🔗 Especificação de Endpoints (Front Controller)
+
+Todas as requisições passam por `controller.do` (ou `/ManterReserva`). A ação é lida do parâmetro `btnop` (também aceitos `acao` e `action`); sem ação, executa `ConsultaTodos`. Regras gerais:
+
+- Ações de mutação (`Cadastra`, `Atualiza`, `Deleta`, `ProcessarCheckInAutomatico`, `LoginCliente`, `CadastraCliente`, `LogoutCliente`) só aceitam **POST** → `405 Method Not Allowed` em GET.
+- Ações da recepção (`Admin`, `CadastroManual`, `Edita`, `Atualiza`, `Deleta`) exigem sessão com perfil `RECEPCAO`; sem login → `302` para `Login` preservando o `redirect` interno; com perfil errado → `resultado.jsp` com mensagem de acesso negado.
+- Comando desconhecido → `404 Not Found`. Acesso direto a `/WEB-INF/views/*.jsp` → `404`.
+- O token CSRF fica na sessão (`csrfToken`) e é enviado pelos formulários como campo oculto de mesmo nome.
+
+| Ação (`btnop`) | Método | Acesso | CSRF | Command | Resposta |
+| :--- | :---: | :--- | :---: | :--- | :--- |
+| `ConsultaTodos` *(padrão)* | GET | Público | – | `ConsultaTodosReservaAction` | `index.jsp` — catálogo de acomodações |
+| `NovaReserva` | GET | Público | – | `NovaReservaAction` | `reserva.jsp` — formulário da acomodação `acomodacaoId` (aceita `txtCheckIn`, `txtCheckOut`, `txtQtdHospedes` pré-preenchidos) |
+| `Cadastra` | POST | Público (cria a conta do hóspede quando não há sessão) | ✔ | `CadastraReservaAction` | `detalhesReserva.jsp` com a reserva confirmada; `resultado.jsp` em caso de erro ou falta de vagas |
+| `ConsultaById` | GET | Autenticado (titular ou recepção) | – | `ConsultaByIdReservaAction` | `detalhesReserva.jsp` da reserva `id` |
+| `ProcessarCheckInAutomatico` | POST | Autenticado (titular ou recepção) | ✔ | `ProcessarCheckInAutomaticoReservaAction` | `detalhesReserva.jsp` com status `CHECKIN_ATIVO`, PIN e resumo financeiro |
+| `MinhasReservas` | GET | Autenticado | – | `MinhasReservasAction` | `minhasReservas.jsp` |
+| `Login` | GET | Público | – | `LoginReservaAction` | `login.jsp` |
+| `LoginCliente` | POST | Público | –¹ | `LoginClienteAction` | Redirect para `Admin` (recepção), `MinhasReservas` (hóspede) ou `redirect` interno validado |
+| `LogoutCliente` | POST | Autenticado | ✔ | `LogoutClienteAction` | Invalida a sessão e redireciona para `ConsultaTodos` |
+| `Cadastro` | GET | Público | – | `CadastroReservaAction` | `cadastro.jsp` |
+| `CadastraCliente` | POST | Público | –¹ | `CadastraClienteAction` | Cria o hóspede, inicia a sessão e redireciona para `MinhasReservas` |
+| `Admin` | GET | `RECEPCAO` | – | `AdminReservaAction` | `admin.jsp` — todas as reservas |
+| `CadastroManual` | GET | `RECEPCAO` | – | `CadastroManualReservaAction` | `formCadastro.jsp` |
+| `Edita` | GET | `RECEPCAO` | – | `EditaReservaAction` | `formEditar.jsp` da reserva `id` |
+| `Atualiza` | POST | `RECEPCAO` | ✔ | `AtualizaReservaAction` | `resultado.jsp` com confirmação |
+| `Deleta` | POST | `RECEPCAO` | ✔ | `DeletaReservaAction` | `resultado.jsp` com confirmação |
+
+<sub>¹ Os formulários de login e de cadastro de conta enviam o token, mas essas duas ações ainda não o validam (melhoria futura).</sub>
+
+---
+
 ## 📐 Modelagem e Diagramas UML
 
-Os diagramas representam a arquitetura estrutural e o fluxo dinâmico de comandos da aplicação:
+Os diagramas são gerados a partir das fontes **PlantUML** em [`docs/uml/`](docs/uml/) e refletem o código atual. Para regenerar (Java 17+; o `plantuml.jar` é baixado automaticamente, sem necessidade de Graphviz):
 
-### 🟣 1. Diagrama de Classes
-Contempla o relacionamento entre o Front Controller, a interface `ICommand`, as Actions, Factories, Builders, DAOs e Entidades de Domínio.
+```bash
+python3 docs/uml/gerar_diagramas.py
+```
+
+Cada diagrama possui versão PNG (exibida abaixo) e SVG vetorial para zoom sem perda.
+
+### 🟣 1. Diagrama de Classes — Domínio e Padrões GoF
+
+Entidade principal `Reserva` (11 atributos), `Hospede`, `ItemServico`, `Acomodacao`, os enums `StatusReserva` (State) e `FormaPagamento`, o `ReservaBuilder` (Builder), a hierarquia `ServicoFactory` (Factory Method) e a família `PoliticaPrecoStrategy` / `RegraTarifa` (Strategy).
+
+Relacionamentos: `Reserva → Hospede` (referência única ao titular, FK `hospede_id`; o mesmo hóspede pode ser titular de várias reservas, listadas em "Minhas Reservas"), `Reserva ◆→ ItemServico` (composição 1:N, FK `reserva_id` com `ON DELETE CASCADE`) e `Reserva → Acomodacao` (0..1).
 
 <div align="center">
-  <img src="diagrama_classes_uml.png" alt="Diagrama de Classes UML" width="95%" style="border-radius: 8px; box-shadow: 0 0 20px rgba(147, 51, 234, 0.4);" />
+  <img src="docs/uml/diagrama_classes_dominio_uml.png" alt="Diagrama de Classes UML - Domínio e Padrões GoF" width="100%" style="border-radius: 8px; box-shadow: 0 0 20px rgba(147, 51, 234, 0.4);" />
+  <sub><a href="docs/uml/diagrama_classes_dominio_uml.svg">abrir SVG</a> · <a href="docs/uml/diagrama_classes_dominio_uml.puml">fonte .puml</a></sub>
 </div>
 
 <br/>
 
-### 🟣 2. Diagrama de Sequência
-Exemplifica o ciclo de vida completo de uma requisição Web: submissão no formulário JSP, despacho no Front Controller, execução da Command, chamada ao Service e persistência no DAO.
+### 🟣 2. Diagrama de Classes — Arquitetura Web em Camadas
+
+View (JSP) → `ManterReserva` (Front Controller) → `CommandFactory` / `ICommand` e os 16 comandos concretos → `ReservaService` → DAOs (`ReservaDAO`, `HospedeDAO`, `ItemServicoDAO`, `AcomodacaoDAO`) → `FabricaConexao`, `Seguranca`, `Html` e o `ServidorTomcat` embutido.
 
 <div align="center">
-  <img src="diagrama_sequencia_uml.png" alt="Diagrama de Sequência UML" width="95%" style="border-radius: 8px; box-shadow: 0 0 20px rgba(147, 51, 234, 0.4);" />
+  <img src="docs/uml/diagrama_classes_arquitetura_uml.png" alt="Diagrama de Classes UML - Arquitetura Web" width="100%" style="border-radius: 8px; box-shadow: 0 0 20px rgba(147, 51, 234, 0.4);" />
+  <sub><a href="docs/uml/diagrama_classes_arquitetura_uml.svg">abrir SVG</a> · <a href="docs/uml/diagrama_classes_arquitetura_uml.puml">fonte .puml</a></sub>
+</div>
+
+<br/>
+
+### 🟣 3. Diagrama de Sequência — Cadastrar Reserva
+
+Ciclo de vida completo de uma requisição Web: submissão em `reserva.jsp`, despacho no Front Controller, criação do comando pela `CommandFactory`, validações, criação dos serviços via Factory Method, cálculo do total via Strategy, construção da `Reserva` com o Builder, chamada ao `ReservaService` e persistência transacional no `ReservaDAO` (com `commit`/`rollback`), terminando no `forward` para `detalhesReserva.jsp`.
+
+<div align="center">
+  <img src="docs/uml/diagrama_sequencia_uml.png" alt="Diagrama de Sequência UML - Cadastrar Reserva" width="100%" style="border-radius: 8px; box-shadow: 0 0 20px rgba(147, 51, 234, 0.4);" />
+  <sub><a href="docs/uml/diagrama_sequencia_uml.svg">abrir SVG</a> · <a href="docs/uml/diagrama_sequencia_uml.puml">fonte .puml</a></sub>
+</div>
+
+<br/>
+
+### 🟣 4. Diagrama de Sequência — Check-in Inteligente (automação de processo)
+
+Fluxo do requisito de automação: validação de POST/CSRF/sessão, `ReservaService.checkIn()`, consulta com `JOIN`, autorização (titular ou recepção), verificação da máquina de estados (`StatusReserva`), janela temporal, recálculo financeiro (Strategy), geração do PIN com `SecureRandom` e atualização transacional, com os fluxos alternativos de idempotência e de recusa.
+
+<div align="center">
+  <img src="docs/uml/diagrama_sequencia_checkin_uml.png" alt="Diagrama de Sequência UML - Check-in Inteligente" width="100%" style="border-radius: 8px; box-shadow: 0 0 20px rgba(147, 51, 234, 0.4);" />
+  <sub><a href="docs/uml/diagrama_sequencia_checkin_uml.svg">abrir SVG</a> · <a href="docs/uml/diagrama_sequencia_checkin_uml.puml">fonte .puml</a></sub>
 </div>
 
 ---
@@ -139,18 +210,23 @@ Exemplifica o ciclo de vida completo de uma requisição Web: submissão no form
 
 ### Opção A: Execução Imediata via Maven (Recomendada)
 
-O projeto conta com o **Apache Tomcat 9 Embutido** e banco embutido **H2**, não exigindo nada além do JDK 17 e Maven:
+O projeto conta com o **Apache Tomcat 9 Embutido** e banco embutido **H2**, não exigindo nada além do JDK 17+ e Maven 3.9+ (compila com `--release 17`, logo funciona também em JDKs mais novos):
 
 ```bash
 # 1. Clone o repositório
 git clone https://github.com/Marcolopes-malp/Pousa-Patterns.git
 cd Pousa-Patterns
 
-# 2. Compile e inicie o servidor instantaneamente
+# 2. Compile e inicie o servidor (execute a partir da raiz do projeto, onde está o pom.xml)
 mvn compile exec:java
+
+# Opcional: outra porta
+PORT=9090 mvn compile exec:java
 ```
 
 👉 **Acesse no navegador:** [http://localhost:8080/controller.do](http://localhost:8080/controller.do)
+
+O banco H2 é criado automaticamente em `./pousada_db.mv.db` (ignorado pelo Git) com o schema e as contas de demonstração.
 
 ---
 
@@ -162,7 +238,7 @@ Graças ao *multi-stage build* otimizado com cache no `Dockerfile`, o código é
 # 1. Construir a imagem Docker
 docker build -t pousada-reservas .
 
-# 2. Executar o container na porta 8080
+# 2. Executar o container na porta 8080 (dados do H2 persistidos no volume /app/data)
 docker run -p 8080:8080 --name pousada pousada-reservas
 ```
 
@@ -176,6 +252,7 @@ O projeto conta com uma suíte de testes unitários e de integração cobrindo r
 
 ```bash
 mvn test
+# Tests run: 42, Failures: 0, Errors: 0, Skipped: 0
 ```
 
 | Classe de Teste | Quantidade | Escopo Validado |
@@ -190,8 +267,8 @@ mvn test
 | `HospedeReservaDesacoplamentoTest`| 2 testes | Integridade: separação da edição de hóspede da edição de reserva |
 | `AcomodacaoDAOTest` | 2 testes | Consulta de acomodações e busca por identificador |
 | `ReservaServiceTest` | 2 testes | Camada de serviço: orquestração de reservas e validação de check-in |
-| `RedirectPreservacaoTest` | 1 teste | Segurança: preservação de parâmetros com URLEncoder |
 | `FormaPagamentoTest` | 2 testes | Tipagem forte: conversões e validação do enum de formas de pagamento |
+| `RedirectPreservacaoTest` | 1 teste | Segurança: preservação de parâmetros com URLEncoder |
 
 ---
 
@@ -203,19 +280,23 @@ pousada-reservas/
 ├── 🐳 .dockerignore                      # Arquivos ignorados pelo build Docker
 ├── 📦 pom.xml                            # Configurações do Maven (JDK 17 release, escopos provided)
 ├── 📄 LICENSE                            # Licença MIT
-├── 📄 GUIA_APRESENTACAO.md               # Guia mestre de apresentação acadêmica e defesa M1
-├── 🖼️ diagrama_classes_uml.png           # Diagrama estrutural de classes
-├── 🖼️ diagrama_sequencia_uml.png         # Diagrama comportamental de sequência
+├── 📄 GUIA_APRESENTACAO.md / .docx       # Guia mestre de apresentação acadêmica e defesa M1
 ├── 📄 README.md                          # Documentação técnica do projeto
+├── 📁 docs/uml/                          # Diagramas UML (fontes PlantUML + PNG/SVG gerados)
+│   ├── 🖼️ diagrama_classes_dominio_uml.*      # Classes: domínio, Builder, Factory Method, Strategy, State
+│   ├── 🖼️ diagrama_classes_arquitetura_uml.*  # Classes: Front Controller, Command, Service, DAO, util
+│   ├── 🖼️ diagrama_sequencia_uml.*            # Sequência: Cadastrar Reserva
+│   ├── 🖼️ diagrama_sequencia_checkin_uml.*    # Sequência: Check-in Inteligente
+│   └── 🐍 gerar_diagramas.py                  # Renderiza os .puml em PNG e SVG (PlantUML)
 └── 📁 src/
     ├── 📁 main/
     │   ├── 📁 java/                      # Código-fonte Java 17
-    │   │   ├── 📁 br/com/commandfactory/controller/ # Commands (ICommand, Actions e CommandFactory)
+    │   │   ├── 📁 br/com/commandfactory/controller/ # Commands (ICommand, 16 Actions e CommandFactory)
     │   │   ├── 📁 controller/            # Front Controller (ManterReserva)
     │   │   ├── 📁 dao/                   # Persistência JDBC com transações ACID (ReservaDAO, etc.)
-    │   │   ├── 📁 model/                 # Entidades, Enums, Builder, Factory Method e Strategy
-    │   │   ├── 📁 service/               # Camada de Serviço (ReservaService)
-    │   │   └── 📁 util/                  # Conexão, Segurança (PBKDF2), ServidorTomcat e Listeners
+    │   │   ├── 📁 model/                 # Entidades, Enums (State), Builder, Factory Method e Strategy
+    │   │   ├── 📁 service/               # Camada de Serviço (ReservaService, CalculadoraTarifa)
+    │   │   └── 📁 util/                  # Conexão, Segurança (PBKDF2), Html, ServidorTomcat e Listener
     │   ├── 📁 resources/
     │   │   └── 📄 schema.sql             # DDL e inicialização de tabelas compatível com H2 e MySQL
     │   └── 📁 webapp/                    # Interface Visual Web
@@ -226,7 +307,7 @@ pousada-reservas/
     │               ├── 📁 fragments/     # Fragmentos reutilizáveis (header.jspf, footer.jspf)
     │               └── 📄 *.jsp          # Telas do sistema (index, reserva, admin, etc.)
     └── 📁 test/
-        └── 📁 java/                      # Suíte de 42 testes unitários (JUnit 5)
+        └── 📁 java/                      # Suíte de 42 testes unitários e de integração (JUnit 5)
 ```
 
 ---

@@ -1,0 +1,106 @@
+@startuml diagrama_sequencia_checkin_uml
+title <b>Diagrama de Sequência — Automação de Processo: Check-in Inteligente</b>\nPOST /controller.do?btnop=ProcessarCheckInAutomatico · validação da máquina de estados (State) · recálculo (Strategy) · PIN seguro · atualização transacional (DAO)\n
+skinparam dpi 150
+skinparam shadowing false
+skinparam defaultFontSize 12
+skinparam maxMessageSize 300
+skinparam responseMessageBelowArrow true
+skinparam sequenceMessageAlign center
+skinparam sequence {
+  ArrowColor #1F2937
+  LifeLineBorderColor #64748B
+  LifeLineBackgroundColor #F8FAFC
+  GroupBorderColor #475569
+  GroupBackgroundColor #F1F5F9
+}
+skinparam note {
+  BackgroundColor #FFFBEB
+  BorderColor #D97706
+}
+autonumber "<b>0</b>"
+
+actor "Hóspede titular\nou Recepção" as H
+box "View (JSP)" #EDE9FE
+  boundary "minhasReservas.jsp /\ndetalhesReserva.jsp" as V
+  boundary "detalhesReserva.jsp" as V2
+end box
+box "Controller" #DBEAFE
+  control "ManterReserva\n«Front Controller»" as FC
+  control "CommandFactory\n«Factory»" as CF
+  control "ProcessarCheckInAutomatico\nReservaAction «Command»" as CMD
+end box
+box "Model / Service" #DCFCE7
+  control "ReservaService\n«Service Layer»" as RS
+  entity "StatusReserva\n«State»" as ST
+  entity "CalculadoraPreco\n«Strategy»" as CP
+  entity "Seguranca" as SEG
+end box
+box "Persistência" #FCE7F3
+  entity "ReservaDAO\n«DAO»" as RDAO
+  database "H2 / MySQL" as DB
+end box
+
+H -> V : clica em "Fazer check-in" da reserva
+activate V
+V -> FC : POST controller.do (btnop=ProcessarCheckInAutomatico, id, csrfToken)
+activate FC
+FC -> FC : exige POST (ação de mutação);\ngarante csrfToken na sessão
+FC -> CF : criarComando("ProcessarCheckInAutomatico")
+activate CF
+create CMD
+CF -> CMD : «create»
+CF --> FC : ICommand
+deactivate CF
+FC -> CMD : executar(request, response)
+activate CMD
+CMD -> CMD : valida token CSRF e usuário logado
+CMD -> RS : checkIn(id, usuarioLogado)
+activate RS
+RS -> RDAO : consultarById(id)
+activate RDAO
+RDAO -> DB : SELECT r.*, h.* FROM reservas r LEFT JOIN hospedes h …;\nSELECT * FROM itens_servicos WHERE reserva_id = ?
+DB --> RDAO : linhas
+RDAO --> RS : Reserva (+ Hospede titular, + servicos)
+deactivate RDAO
+RS -> RS : autorização: recepção ou o próprio titular\n(caso contrário SecurityException)
+RS -> ST : fromString(reserva.status)
+activate ST
+ST --> RS : estado atual
+deactivate ST
+
+alt estado = CHECKIN_ATIVO (idempotência)
+  RS --> CMD : ResultadoCheckIn(jaRealizado = true, reserva)
+  CMD --> FC : "detalhesReserva.jsp" (aviso: check-in já realizado)
+else CANCELADA, FINALIZADA ou !podeFazerCheckIn() (PENDENTE)
+  RS --> CMD : IllegalStateException (motivo da recusa)
+  CMD --> FC : "resultado.jsp" (mensagem de erro)
+else estado = CONFIRMADA
+  RS -> RS : valida janela temporal: a partir da véspera do check-in\n(hóspede) e até a data de check-out
+  RS -> CP : calcular(noites, valorDiaria, servicos, formaPagamento)
+  activate CP
+  CP --> RS : ResultadoCalculoPreco (resumo financeiro)
+  deactivate CP
+  RS -> SEG : gerarPinFechaduraSeguro()
+  activate SEG
+  SEG --> RS : PIN de 4 dígitos (SecureRandom)
+  deactivate SEG
+  RS -> RS : reserva.setStatus(CHECKIN_ATIVO);\nobservacoes += "[Check-In realizado. PIN Smart-Lock: ####]"
+  RS -> RDAO : atualizar(reserva)
+  activate RDAO
+  RDAO -> DB : setAutoCommit(false); UPDATE reservas SET status, observacoes, …;\nDELETE/INSERT itens_servicos; commit() (rollback em caso de erro)
+  DB --> RDAO : ok
+  RDAO --> RS : reserva atualizada
+  deactivate RDAO
+  RS --> CMD : ResultadoCheckIn(false, reserva, calculo, pin)
+  deactivate RS
+  CMD -> CMD : request.setAttribute(reserva, pinAcesso, totalDias,\nsubtotalDiarias, valorDesconto, totalServicos, taxaAmbiental, valorDescontoPix)
+  CMD --> FC : "detalhesReserva.jsp" (msg de sucesso)
+end
+deactivate CMD
+FC -> V2 : forward("/WEB-INF/views/detalhesReserva.jsp")
+deactivate FC
+activate V2
+V2 --> H : exibe status CHECKIN_ATIVO, PIN da fechadura digital\ne detalhamento do valor da estadia
+deactivate V2
+deactivate V
+@enduml

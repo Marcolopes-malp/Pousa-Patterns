@@ -1,0 +1,242 @@
+@startuml diagrama_classes_arquitetura_uml
+!pragma layout smetana
+left to right direction
+title <b>Diagrama de Classes — Arquitetura Web em Camadas</b>\nPousada Paradiso · Front Controller + MVC · Command · CommandFactory · Service Layer · DAO (JDBC transacional) · Infraestrutura\n
+skinparam dpi 150
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam defaultFontSize 12
+skinparam packageStyle rectangle
+skinparam nodesep 25
+skinparam ranksep 45
+skinparam ArrowColor #1F2937
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #1F2937
+  HeaderBackgroundColor #F8FAFC
+}
+skinparam note {
+  BackgroundColor #FFFBEB
+  BorderColor #D97706
+}
+hide empty members
+
+package "View (JSP em WEB-INF/views)" as PkgView #EDE9FE {
+  class "index.jsp · reserva.jsp\ndetalhesReserva.jsp · minhasReservas.jsp\nadmin.jsp · formCadastro.jsp · formEditar.jsp\nlogin.jsp · cadastro.jsp · resultado.jsp" as Views <<JSP>>
+}
+
+package "controller — Front Controller" as PkgController #DBEAFE {
+  class HttpServlet <<javax.servlet>>
+  class ManterReserva <<Front Controller>> {
+    # processRequest(request, response) : void
+    # doGet(request, response) : void
+    # doPost(request, response) : void
+  }
+}
+
+package "br.com.commandfactory.controller — Command" as PkgCommand #FEF3C7 {
+  class CommandFactory <<Factory (registro tipado)>> {
+    - {static} COMANDOS : Map<String, Supplier<ICommand>>
+    __
+    + {static} criarComando(nomeAcao) : ICommand
+    + {static} existeComando(nomeAcao) : boolean
+  }
+  interface ICommand <<Command>> {
+    + executar(request, response) : String
+  }
+  package "Fluxo de reserva" as PkgCmdReserva #FFFFFF {
+    class CadastraReservaAction <<ConcreteCommand>>
+    class AtualizaReservaAction <<ConcreteCommand>>
+    class ProcessarCheckInAutomaticoReservaAction <<ConcreteCommand · automação>>
+  }
+  package "Consulta e gestão" as PkgCmdConsulta #FFFFFF {
+    class ConsultaTodosReservaAction <<ConcreteCommand>>
+    class NovaReservaAction <<ConcreteCommand>>
+    class ConsultaByIdReservaAction <<ConcreteCommand>>
+    class MinhasReservasAction <<ConcreteCommand>>
+    class AdminReservaAction <<ConcreteCommand>>
+    class CadastroManualReservaAction <<ConcreteCommand>>
+    class EditaReservaAction <<ConcreteCommand>>
+    class DeletaReservaAction <<ConcreteCommand>>
+  }
+  package "Autenticação e navegação" as PkgCmdAuth #FFFFFF {
+    class LoginReservaAction <<ConcreteCommand>>
+    class LoginClienteAction <<ConcreteCommand>>
+    class LogoutClienteAction <<ConcreteCommand>>
+    class CadastroReservaAction <<ConcreteCommand>>
+    class CadastraClienteAction <<ConcreteCommand>>
+  }
+}
+
+package "model — GoF usados pelos Commands" as PkgModel #FFFFFF {
+  class ReservaBuilder <<Builder>>
+  abstract class ServicoFactory <<Factory Method>>
+  class CalculadoraPreco <<Strategy · Context>>
+  enum StatusReserva <<State>>
+}
+
+package "service — Service Layer" as PkgService #DCFCE7 {
+  class ReservaService {
+    - reservaDAO : ReservaDAO
+    - hospedeDAO : HospedeDAO
+    - calculadoraPreco : CalculadoraPreco
+    __
+    + cadastrar(reserva) : Reserva
+    + checkIn(reservaId, usuarioLogado) : ResultadoCheckIn
+    + atualizar(reserva, hospedeAtualizado) : void
+    + consultarPorId(id) : Reserva
+    + listarTodas() : List<Reserva>
+    + listarPorHospede(hospedeId) : List<Reserva>
+    + deletar(id) : void
+  }
+  class "ReservaService.ResultadoCheckIn" as ResultadoCheckIn <<DTO>> {
+    - jaRealizado : boolean
+    - reserva : Reserva
+    - calculo : ResultadoCalculoPreco
+    - pin : int
+  }
+  class CalculadoraTarifa <<Façade de tarifação>> {
+    - calculadoraPreco : CalculadoraPreco
+    __
+    + calcular(valorDiaria, checkIn, checkOut,\n   qtdHospedes, servicos, formaPagamento)
+  }
+}
+
+package "dao — Data Access Object (JDBC)" as PkgDao #FCE7F3 {
+  class ReservaDAO <<DAO>> {
+    - hospedeDAO : HospedeDAO
+    - servicoDAO : ItemServicoDAO
+    - acomodacaoDAO : AcomodacaoDAO
+    __
+    + cadastrar(reserva) : int «transação ACID»
+    + atualizar(reserva) : void «transação ACID»
+    + deletar(id) : void «transação ACID»
+    + consultarById(id) : Reserva «LEFT JOIN»
+    + consultarTodos() : List<Reserva> «JOIN + lote»
+    + listarPorHospede(hospedeId) : List<Reserva>
+    + contarReservasSobrepostas(acomodacaoId,\n   checkIn, checkOut, reservaIdIgnorar) : int
+  }
+  class HospedeDAO <<DAO>> {
+    + cadastrar(hospede) : int
+    + cadastrar(con, hospede) : int
+    + autenticar(email, senha) : Hospede
+    + buscarPorEmail(email) : Hospede
+    + consultarById(id) : Hospede
+    + consultarTodos() : List<Hospede>
+    + atualizar(hospede) : void
+    + atualizarSenha(id, hashSenha) : void
+    + deletar(id) : void
+  }
+  class ItemServicoDAO <<DAO>> {
+    + cadastrar(con, item) : int
+    + listarPorReserva(reservaId) : List<ItemServico>
+    + listarPorMultiplasReservas(ids) : Map<Integer, List<ItemServico>>
+    + deletarPorReserva(con, reservaId) : void
+  }
+  class AcomodacaoDAO <<catálogo em memória>> {
+    - {static} CATALOGO : List<Acomodacao>
+    __
+    + listarTodas() : List<Acomodacao>
+    + buscarPorId(id) : Acomodacao
+    + buscarPorNome(nome) : Acomodacao
+  }
+}
+
+package "util — Infraestrutura e Segurança" as PkgUtil #F1F5F9 {
+  class FabricaConexao <<Factory de conexões>> {
+    - {static} tabelasInicializadas : boolean «volatile»
+    __
+    + {static} getConexao() : Connection
+    + {static} inicializarSchema() : void
+    + {static} getUrlConfigurada() : String
+  }
+  class Seguranca {
+    + {static} gerarHashSenha(senha) : String «PBKDF2»
+    + {static} verificarSenha(senha, hash) : boolean
+    + {static} isRedirectSeguro(url) : boolean
+    + {static} obterRedirectSeguro(url, fallback) : String
+    + {static} gerarPinFechaduraSeguro() : int «SecureRandom»
+  }
+  class Html {
+    + {static} esc(value) : String «anti-XSS»
+  }
+  class DatabaseInitializerListener <<@WebListener>> {
+    + contextInitialized(sce) : void
+    + contextDestroyed(sce) : void
+  }
+  class ServidorTomcat <<Tomcat embutido>> {
+    + {static} main(args) : void
+  }
+}
+
+' ---------- Front Controller ----------
+HttpServlet <|-- ManterReserva
+ManterReserva ..> CommandFactory : criarComando(btnop)
+ManterReserva ..> ICommand : executar()
+ManterReserva ..> Views : forward()
+
+' ---------- Command ----------
+CommandFactory ..> ICommand : «create» via Supplier
+ICommand <|.. CadastraReservaAction
+ICommand <|.. AtualizaReservaAction
+ICommand <|.. ProcessarCheckInAutomaticoReservaAction
+ICommand <|.. ConsultaTodosReservaAction
+ICommand <|.. NovaReservaAction
+ICommand <|.. ConsultaByIdReservaAction
+ICommand <|.. MinhasReservasAction
+ICommand <|.. AdminReservaAction
+ICommand <|.. CadastroManualReservaAction
+ICommand <|.. EditaReservaAction
+ICommand <|.. DeletaReservaAction
+ICommand <|.. LoginReservaAction
+ICommand <|.. LoginClienteAction
+ICommand <|.. LogoutClienteAction
+ICommand <|.. CadastroReservaAction
+ICommand <|.. CadastraClienteAction
+
+CadastraReservaAction ..> ReservaBuilder : constrói Reserva
+CadastraReservaAction ..> ServicoFactory : cria ItemServico
+CadastraReservaAction ..> CalculadoraPreco : calcula total
+CadastraReservaAction ..> ReservaService : cadastrar()
+AtualizaReservaAction ..> ReservaService : atualizar()
+ProcessarCheckInAutomaticoReservaAction ..> ReservaService : checkIn()
+PkgCmdConsulta ..> ReservaDAO : consultas, edição, exclusão
+PkgCmdConsulta ..> AcomodacaoDAO : catálogo
+PkgCmdAuth ..> HospedeDAO : autenticar, cadastrar
+
+' ---------- Service ----------
+ReservaService --> "1" ReservaDAO
+ReservaService --> "1" HospedeDAO
+ReservaService --> "1" CalculadoraPreco
+ReservaService ..> StatusReserva : valida transição
+ReservaService ..> Seguranca : gerarPinFechaduraSeguro()
+ReservaService +-- ResultadoCheckIn
+CalculadoraTarifa --> "1" CalculadoraPreco
+
+' ---------- DAO ----------
+ReservaDAO --> "1" HospedeDAO
+ReservaDAO --> "1" ItemServicoDAO
+ReservaDAO --> "1" AcomodacaoDAO
+ReservaDAO ..> FabricaConexao : getConexao()
+HospedeDAO ..> FabricaConexao : getConexao()
+ItemServicoDAO ..> FabricaConexao : getConexao()
+HospedeDAO ..> Seguranca : hash / verificação de senha
+
+' ---------- Infra ----------
+DatabaseInitializerListener ..> FabricaConexao : inicializarSchema()
+
+note top of ManterReserva
+  Mapeado em <b>/controller.do</b> e <b>/ManterReserva</b> (web.xml).
+  Lê a ação em btnop | acao | action (padrão: ConsultaTodos);
+  gera o token CSRF da sessão; exige POST para ações de mutação;
+  restringe Deleta/Edita/Atualiza/Admin/CadastroManual ao perfil RECEPCAO;
+  responde 404 para comando desconhecido e 405 para método inválido.
+end note
+
+note bottom of FabricaConexao
+  Seleção do banco por variáveis de ambiente
+  (DB_URL, DB_ENGINE, DB_PATH, DB_USER, DB_PASS).
+  Padrão: H2 embutido em MODE=MySQL; executa schema.sql
+  e as cargas iniciais (seed) de forma thread-safe.
+end note
+@enduml
