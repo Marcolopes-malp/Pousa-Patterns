@@ -11,11 +11,9 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * Padrão de Projeto Arquitetural: FRONT CONTROLLER (Java EE MVC).
  * Servlet central que intercepta todas as requisições da aplicação,
- * extrai a ação requisitada e utiliza o padrão FACTORY METHOD via Reflection
- * para delegar ao COMMAND correspondente.
- * Conforme ensinado na Aula 07 do Prof. Wolley.
+ * extrai a ação requisitada e utiliza o padrão GoF FACTORY METHOD via CommandFactory
+ * para despachar a execução ao COMMAND correspondente de forma segura e tipada (Tarefas A2 e C1).
  */
-@WebServlet(name = "ManterReserva", urlPatterns = {"/ManterReserva", "/controller.do"})
 public class ManterReserva extends HttpServlet {
 
     private static final java.util.logging.Logger LOGGER = java.util.logging.Logger.getLogger(ManterReserva.class.getName());
@@ -45,7 +43,7 @@ public class ManterReserva extends HttpServlet {
             }
 
             // S2: Ações de mutação de estado só aceitam POST
-            java.util.Set<String> acoesMutantes = java.util.Set.of("Deleta", "ProcessarCheckInAutomatico", "Cadastra", "Atualiza", "LogoutCliente");
+            java.util.Set<String> acoesMutantes = java.util.Set.of("Deleta", "ProcessarCheckInAutomatico", "Cadastra", "Atualiza", "LogoutCliente", "CadastraCliente", "LoginCliente");
             if (acoesMutantes.contains(paramAction) && !"POST".equalsIgnoreCase(request.getMethod())) {
                 response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED, "Operação permitida exclusivamente via POST.");
                 return;
@@ -67,18 +65,14 @@ public class ManterReserva extends HttpServlet {
                 }
             }
 
-            // Padrão FACTORY METHOD com Reflection dinâmica:
-            // Constrói o nome qualificado da classe Action correspondente
-            String nomeDaClasse = "br.com.commandfactory.controller." + paramAction + "ReservaAction";
-            Class<?> classAction = null;
-            try {
-                classAction = Class.forName(nomeDaClasse);
-            } catch (ClassNotFoundException e) {
-                // Tenta sem o sufixo Reserva (ex: ProcessarCheckInAutomaticoAction)
-                nomeDaClasse = "br.com.commandfactory.controller." + paramAction + "Action";
-                classAction = Class.forName(nomeDaClasse);
+            // Padrão GoF FACTORY METHOD (CommandFactory):
+            // Obtém o Command correspondente via registro explícito seguro (A2)
+            ICommand commandAction = br.com.commandfactory.controller.CommandFactory.criarComando(paramAction);
+            if (commandAction == null) {
+                LOGGER.log(java.util.logging.Level.WARNING, "Comando não reconhecido: {0}", paramAction);
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Comando não encontrado: " + paramAction);
+                return;
             }
-            ICommand commandAction = (ICommand) classAction.getDeclaredConstructor().newInstance();
 
             // Padrão COMMAND: Executa a ação e obtém a página JSP de destino
             String pageAction = commandAction.executar(request, response);
@@ -91,11 +85,6 @@ public class ManterReserva extends HttpServlet {
                 request.getRequestDispatcher(pageAction).forward(request, response);
             }
 
-        } catch (ClassNotFoundException e) {
-            LOGGER.log(java.util.logging.Level.WARNING, "Comando de ação não encontrado", e);
-            request.setAttribute("msg", "Ação solicitada não foi encontrada no sistema.");
-            request.setAttribute("tipoMsg", "warning");
-            request.getRequestDispatcher("/WEB-INF/views/resultado.jsp").forward(request, response);
         } catch (Exception e) {
             LOGGER.log(java.util.logging.Level.SEVERE, "Erro interno no processamento da requisição", e);
             request.setAttribute("msg", "Ocorreu um erro interno ao processar a requisição. Por favor, tente novamente.");
