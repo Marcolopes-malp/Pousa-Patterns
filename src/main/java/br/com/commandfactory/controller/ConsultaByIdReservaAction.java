@@ -1,11 +1,11 @@
 package br.com.commandfactory.controller;
 
-import dao.ReservaDAO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import model.Hospede;
 import model.Reserva;
+import service.ReservaService;
 
 /**
  * Comando para Consultar uma Reserva por ID com todos os detalhes e serviços.
@@ -32,8 +32,8 @@ public class ConsultaByIdReservaAction implements ICommand {
                 return null;
             }
 
-            ReservaDAO dao = new ReservaDAO();
-            Reserva reserva = dao.consultarById(id);
+            ReservaService reservaService = new ReservaService();
+            Reserva reserva = reservaService.consultarPorId(id);
 
             if (reserva == null) {
                 request.setAttribute("msg", "Reserva não encontrada para o ID: " + id);

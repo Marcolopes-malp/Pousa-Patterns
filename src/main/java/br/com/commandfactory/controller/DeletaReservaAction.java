@@ -1,10 +1,10 @@
 package br.com.commandfactory.controller;
 
-import dao.ReservaDAO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import model.Hospede;
+import service.ReservaService;
 
 /**
  * Comando para Deletar uma Reserva por ID.
@@ -43,8 +43,8 @@ public class DeletaReservaAction implements ICommand {
             }
 
             int id = Integer.parseInt(request.getParameter("id"));
-            ReservaDAO dao = new ReservaDAO();
-            dao.deletar(id);
+            ReservaService reservaService = new ReservaService();
+            reservaService.deletar(id);
 
             request.setAttribute("msg", "Reserva #" + id + " excluída com sucesso.");
             request.setAttribute("tipoMsg", "success");

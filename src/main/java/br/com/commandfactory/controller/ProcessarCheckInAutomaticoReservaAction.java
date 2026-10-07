@@ -77,7 +77,11 @@ public class ProcessarCheckInAutomaticoReservaAction implements ICommand {
         } catch (Exception e) {
             java.util.logging.Logger.getLogger(ProcessarCheckInAutomaticoReservaAction.class.getName())
                     .log(java.util.logging.Level.SEVERE, "Erro ao processar check-in automatizado", e);
-            String msg = (e instanceof IllegalArgumentException)
+            // Recusas de regra de negócio (status, janela de datas, autorização) exibem o motivo real ao usuário
+            boolean recusaDeNegocio = e instanceof IllegalArgumentException
+                    || e instanceof IllegalStateException
+                    || e instanceof SecurityException;
+            String msg = recusaDeNegocio
                     ? e.getMessage()
                     : "Não foi possível concluir o check-in online no momento. Por favor, tente novamente ou procure a recepção.";
             request.setAttribute("msg", msg);

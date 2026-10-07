@@ -1,11 +1,11 @@
 package br.com.commandfactory.controller;
 
-import dao.ReservaDAO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import model.Hospede;
 import model.Reserva;
+import service.ReservaService;
 
 /**
  * Comando para carregar os dados de uma Reserva e abrir a tela de edição.
@@ -31,8 +31,8 @@ public class EditaReservaAction implements ICommand {
             }
 
             int id = Integer.parseInt(request.getParameter("id"));
-            ReservaDAO dao = new ReservaDAO();
-            Reserva reserva = dao.consultarById(id);
+            ReservaService reservaService = new ReservaService();
+            Reserva reserva = reservaService.consultarPorId(id);
 
             if (reserva != null) {
                 request.setAttribute("reserva", reserva);

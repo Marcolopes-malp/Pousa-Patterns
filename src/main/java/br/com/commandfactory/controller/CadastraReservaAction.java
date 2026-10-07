@@ -201,28 +201,20 @@ public class CadastraReservaAction implements ICommand {
             String observacoes = request.getParameter("txtObservacoes");
 
             // Coleta de serviços adicionais
+            // Padrão FACTORY METHOD: cada fábrica concreta decide qual ItemServico instanciar
             List<ItemServico> servicos = new ArrayList<>();
-            double totalServicos = 0.0;
 
             if (request.getParameter("chkCafe") != null) {
-                ItemServico cafe = ServicoFactory.obterFabrica("cafe").criarServico((int) numDiarias);
-                servicos.add(cafe);
-                totalServicos += cafe.getSubtotal();
+                servicos.add(ServicoFactory.obterFabrica("cafe").criarServico((int) numDiarias));
             }
             if (request.getParameter("chkTransfer") != null) {
-                ItemServico transfer = ServicoFactory.obterFabrica("transfer").criarServico();
-                servicos.add(transfer);
-                totalServicos += transfer.getSubtotal();
+                servicos.add(ServicoFactory.obterFabrica("transfer").criarServico());
             }
             if (request.getParameter("chkPasseio") != null) {
-                ItemServico passeio = ServicoFactory.obterFabrica("passeio").criarServico(qtdHospedes);
-                servicos.add(passeio);
-                totalServicos += passeio.getSubtotal();
+                servicos.add(ServicoFactory.obterFabrica("passeio").criarServico(qtdHospedes));
             }
             if (request.getParameter("chkSpa") != null) {
-                ItemServico spa = ServicoFactory.obterFabrica("spa").criarServico();
-                servicos.add(spa);
-                totalServicos += spa.getSubtotal();
+                servicos.add(ServicoFactory.obterFabrica("spa").criarServico());
             }
 
             // B1: Recalcula o valor total unificado via Padrão STRATEGY (diárias, desconto long-stay, serviços, taxa e desconto PIX)

@@ -1,12 +1,12 @@
 package br.com.commandfactory.controller;
 
-import dao.ReservaDAO;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import model.Hospede;
 import model.Reserva;
+import service.ReservaService;
 
 /**
  * Comando para carregar o Painel de Gestão da Recepção (Admin).
@@ -30,8 +30,8 @@ public class AdminReservaAction implements ICommand {
             return "resultado.jsp";
         }
 
-        ReservaDAO dao = new ReservaDAO();
-        List<Reserva> lista = dao.consultarTodos();
+        ReservaService reservaService = new ReservaService();
+        List<Reserva> lista = reservaService.listarTodas();
         request.setAttribute("listaReservas", lista);
         return "admin.jsp";
     }
