@@ -200,7 +200,7 @@ CadastraReservaAction ..> CalculadoraPreco : calcula total
 CadastraReservaAction ..> ReservaService : cadastrar()
 AtualizaReservaAction ..> ReservaService : atualizar()
 ProcessarCheckInAutomaticoReservaAction ..> ReservaService : checkIn()
-PkgCmdConsulta ..> ReservaDAO : consultas, edição, exclusão
+PkgCmdConsulta ..> ReservaService : consultas, edição, exclusão
 PkgCmdConsulta ..> AcomodacaoDAO : catálogo
 PkgCmdAuth ..> HospedeDAO : autenticar, cadastrar
 
