@@ -318,7 +318,7 @@ pousada-reservas/
 - **Curso:** Bacharelado em Engenharia de Software (5º Semestre)
 - **Disciplina:** Padrões de Projeto (PP) - Avaliação M1
 - **Aluno:** Marco Antonio Lopes Pedro *(Grupo G14)*
-- **Corpo Docente:** Prof. Me. Wolley W. Silva & Profa. Dra. Danielle Martin
+- **Corpo Docente:** Prof. Pedro Toledo
 
 ---
 
